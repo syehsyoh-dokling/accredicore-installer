@@ -1,0 +1,3 @@
+﻿AccrediCore Branding Placeholder
+- Windows GUI stage 1
+- Replace with final logo later

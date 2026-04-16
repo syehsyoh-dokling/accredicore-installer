@@ -1,0 +1,168 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AccrediCore Installer - Windows Stage 1</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <div class="brand">
+        <div class="logo">A</div>
+        <div class="hero-copy">
+          <div class="eyebrow">System Preparation</div>
+          <h1>Welcome to AccrediCore Installer</h1>
+          <p>
+            AccrediCore Installer is designed to simplify the deployment of AccrediCore through
+            a structured five-step setup process. It helps you validate system requirements,
+            complete missing dependencies, deploy the application source, configure the database,
+            and finalize the environment with a local URL for testing and login verification.
+          </p>
+        </div>
+      </div>
+      <div class="hero-side">
+        <button id="startHereBtn" class="start-cta" type="button">
+          <span class="line1">Start Here</span>
+          <span class="line2">Check minimum requirement server</span>
+        </button>
+      </div>
+    </section>
+
+    <div class="grid">
+      <section class="card">
+        <h2>Step 1: Detected System Information</h2>
+        <p class="card-sub">
+          AccrediCore Installer has reads your local environment and you can review compatibility before continuing.
+          Please click confirm if the information below is based on your actual device:
+        </p>
+
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="label">Operating System</div>
+            <div class="value" id="osName">Windows 11</div>
+          </div>
+          <div class="info-item">
+            <div class="label">OS Version</div>
+            <div class="value" id="osVersion">23H2</div>
+          </div>
+          <div class="info-item">
+            <div class="label">Architecture</div>
+            <div class="value" id="arch">x64</div>
+          </div>
+          <div class="info-item">
+            <div class="label">Check Time</div>
+            <div class="value" id="checkTime">2026-04-16 10:15</div>
+          </div>
+        </div>
+
+        <div class="actions top-gap">
+          <button id="confirmDeviceBtn" class="btn-primary" type="button">Confirm, it is my device</button>
+          <button id="wrongDeviceBtn" class="btn-secondary" type="button">No, it is the wrong device</button>
+        </div>
+
+        <div id="wrongDeviceNote" class="inline-note danger-note hidden">
+          Process stopped. Please verify the device before continuing.
+        </div>
+      </section>
+
+      <section id="requirementsSection" class="card hidden">
+        <h2>Minimum Requirements</h2>
+        <p class="card-sub">
+          These components will be validated before AccrediCore pulls the application source and prepares the local environment.
+          If you do not see any progress, please click Start Here on the top right header.
+        </p>
+
+        <div class="requirement-list" id="requirementsList">
+          <div class="requirement-row"><div><div class="req-title">Git</div><div class="req-desc">Required for downloading the AccrediCore source package or repository release.</div></div><span class="status neutral" data-key="git">Pending</span></div>
+          <div class="requirement-row"><div><div class="req-title">Node.js</div><div class="req-desc">Required to run frontend or utility services used by the local setup.</div></div><span class="status neutral" data-key="node">Pending</span></div>
+          <div class="requirement-row"><div><div class="req-title">npm or pnpm</div><div class="req-desc">Required for dependency installation during the bootstrap phase.</div></div><span class="status neutral" data-key="npm">Pending</span></div>
+          <div class="requirement-row"><div><div class="req-title">Docker / Docker Desktop</div><div class="req-desc">Required if AccrediCore services or database components run in local containers.</div></div><span class="status neutral" data-key="docker">Pending</span></div>
+          <div class="requirement-row"><div><div class="req-title">Available Disk Space</div><div class="req-desc">Minimum recommended free space: 10 GB.</div></div><span class="status neutral" data-key="disk">Pending</span></div>
+          <div class="requirement-row"><div><div class="req-title">Internet Connection</div><div class="req-desc">Required to download source files, runtime packages, or build dependencies.</div></div><span class="status neutral" data-key="internet">Pending</span></div>
+          <div class="requirement-row"><div><div class="req-title">Required Port Availability</div><div class="req-desc">Checks whether common local runtime ports are available for AccrediCore services.</div></div><span class="status neutral" data-key="ports">Pending</span></div>
+          <div class="requirement-row"><div><div class="req-title">Write Access to Working Directory</div><div class="req-desc">Installer must be able to write to the target installation and log folders.</div></div><span class="status neutral" data-key="write">Pending</span></div>
+        </div>
+      </section>
+
+      <section id="resultsSection" class="card hidden">
+        <div class="result-header">
+          <div>
+            <h2>Requirement Check Results</h2>
+            <p class="card-sub">Static preview example after the system check has been completed.</p>
+          </div>
+          <div class="summary-box" id="resultsSummary">5 Passed Â· 2 Warning Â· 1 Missing</div>
+        </div>
+
+        <div class="result-list" id="resultsList"></div>
+      </section>
+
+      <section id="stepsSection" class="card hidden">
+        <h2>Deployment Steps</h2>
+        <p class="card-sub">
+          AccrediCore will guide you through each stage until the local test environment is ready.
+          Do you want to continue to step 2?
+        </p>
+
+        <div class="requirement-list">
+          <div class="requirement-row"><div><div class="req-title">Step 2 â€” Install Missing Components</div><div class="req-desc">If you do not see any progress, please click Install on the top right header to add any required tools or dependencies that are not yet available on this machine.</div></div><span class="status neutral">Step 2</span></div>
+          <div class="requirement-row"><div><div class="req-title">Step 3 â€” Deploy Source Code</div><div class="req-desc">Download and prepare the AccrediCore application source from the configured release or repository.</div></div><span class="status neutral">Step 3</span></div>
+          <div class="requirement-row"><div><div class="req-title">Step 4 â€” Set Up Database</div><div class="req-desc">Initialize the required database structure, apply migrations, and prepare the local data environment.</div></div><span class="status neutral">Step 4</span></div>
+          <div class="requirement-row"><div><div class="req-title">Step 5 â€” Finalize Setup</div><div class="req-desc">Complete the final configuration and display a local URL for testing and login verification.</div></div><span class="status neutral">Step 5</span></div>
+        </div>
+
+        <div class="actions top-gap">
+          <button id="continueToStep2Btn" class="btn-primary" type="button">Yes, continue to Step 2</button>
+          <button id="stopAfterStep1Btn" class="btn-secondary" type="button">No, stop here</button>
+        </div>
+      </section>
+
+      <section id="actionsSection" class="card hidden">
+        <h2>Actions</h2>
+        <p class="card-sub">For this Windows stage, the button states are interactive and simulate the real flow.</p>
+        <div class="actions">
+          <button id="checkRequirementsBtn" class="btn-primary" type="button">Check Requirements</button>
+          <button id="fixMissingItemsBtn" class="btn-secondary" type="button">Fix Missing Items</button>
+          <button id="continueBtn" class="btn-muted" type="button" disabled>Continue</button>
+          <button id="exitBtn" class="btn-secondary" type="button">Exit</button>
+        </div>
+      </section>
+
+      <section class="card footer">
+        <div class="footer-top">
+          <div>
+            <div><strong>Working Directory:</strong> C:\AccrediCore</div>
+            <div><strong>Installer Logs:</strong> C:\AccrediCore\logs\installer.log</div>
+            <div><strong>Status:</strong> <span id="footerStatus">Ready to check system requirements</span></div>
+          </div>
+          <div class="footer-meta">
+            <div class="copyright">Â© 2026 AccrediCore Installer</div>
+            <div class="version-pill">Installer Version 0.1.0</div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div id="modal" class="modal hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modalTitle">Checking requirements...</h3>
+      </div>
+      <div class="progress-shell">
+        <div class="progress-bar">
+          <div id="progressFill" class="progress-fill"></div>
+        </div>
+      </div>
+      <div id="progressText" class="progress-text">Initializing...</div>
+      <div id="progressList" class="progress-list"></div>
+      <div class="actions top-gap hidden" id="modalCloseRow">
+        <button id="modalCloseBtn" class="btn-primary" type="button">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
