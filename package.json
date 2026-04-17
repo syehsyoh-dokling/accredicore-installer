@@ -1,0 +1,53 @@
+{
+  "name": "accredicore-installer",
+  "version": "0.3.0",
+  "description": "Production-oriented cross-platform installer launcher for AccrediCore.",
+  "main": "electron/main.js",
+  "author": "OpenAI",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "app": "electron .",
+    "dev": "electron .",
+    "dist:win": "electron-builder --win nsis portable",
+    "dist:linux": "electron-builder --linux AppImage deb tar.gz",
+    "dist:mac": "electron-builder --mac dmg zip",
+    "dist:all": "electron-builder -mwl",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "devDependencies": {
+    "electron": "^31.7.7",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "org.accredicore.installer",
+    "productName": "AccrediCore Installer",
+    "directories": {
+      "output": "artifacts"
+    },
+    "files": [
+      "index.html",
+      "shared/**/*",
+      "windows/**/*",
+      "linux/**/*",
+      "macos/**/*",
+      "electron/**/*",
+      "docs/**/*",
+      "README.md",
+      "CHANGELOG.md"
+    ],
+    "asar": true,
+    "win": {
+      "target": ["nsis", "portable"]
+    },
+    "linux": {
+      "target": ["AppImage", "deb", "tar.gz"],
+      "category": "Utility"
+    },
+    "mac": {
+      "target": ["dmg", "zip"],
+      "category": "public.app-category.utilities",
+      "hardenedRuntime": false
+    }
+  }
+}

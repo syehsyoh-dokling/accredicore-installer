@@ -1,7 +1,24 @@
-﻿# Windows Checker
+﻿# Windows Real Checker
 
-This folder will hold real Windows requirement checker scripts in the next stage.
+This stage adds a real PowerShell checker for Windows.
 
-Current stage:
-- GUI source prototype is active in ../gui
-- checker logic is still simulated in frontend JavaScript
+## Files
+- Check-SystemRequirements.ps1
+- Run-RequirementCheck.ps1
+- output/system-requirements.json
+
+## Run manually
+```powershell
+powershell -ExecutionPolicy Bypass -File .\Run-RequirementCheck.ps1
+```
+
+## Purpose
+This checker produces actual JSON output for:
+- Git
+- Node.js
+- npm / pnpm
+- Docker
+- disk space
+- internet connection
+- required ports
+- write access

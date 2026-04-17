@@ -1,0 +1,6 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AccrediCore system requirements result",
+  "type": "object",
+  "required": ["generated_at", "system", "summary", "checks"]
+}

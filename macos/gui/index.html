@@ -1,0 +1,65 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AccrediCore macOS Installer</title>
+  <link rel="stylesheet" href="../../shared/gui/styles.css" />
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero-card">
+      <div>
+        <p class="eyebrow">AccrediCore native installer</p>
+        <h1>macOS setup console</h1>
+        <p class="lead">The workflow is now locked step-by-step. Only valid next actions will be enabled.</p>
+      </div>
+      <div class="hero-meta">
+        <div class="status-pill">Platform: <span id="platform-name">macos</span></div>
+        <div class="status-pill secondary">Runtime: <span id="runtime-name">browser</span></div>
+      </div>
+    </header>
+
+    <main class="grid two-columns">
+      <section class="card stack-gap">
+        <h2>Inputs</h2>
+        <div class="kv-grid">
+          <div>
+            <div class="label">Working directory</div>
+            <input class="input" id="working-directory" value="$HOME/AccrediCore" />
+          </div>
+          <div>
+            <div class="label">Source ZIP path</div>
+            <input class="input" id="source-zip" value="$HOME/Downloads/accredicore-source.zip" />
+          </div>
+          <div style="grid-column: 1 / -1;">
+            <div class="label">Git remote URL</div>
+            <input class="input" id="remote-url" value="https://github.com/your-org/accredicore-app.git" />
+          </div>
+        </div>
+      </section>
+
+      <section class="card stack-gap">
+        <h2>Actions</h2>
+        <div class="button-row wrap">
+          <button class="btn primary" data-action="check">Check requirements</button>
+          <button class="btn secondary" data-action="reconfirm-ports" style="display:none;">Reconfirm ports</button>
+          <button class="btn secondary" data-action="install" style="display:none;">Install dependencies</button>
+          <button class="btn secondary" data-action="deploy" disabled>Deploy source ZIP</button>
+          <button class="btn secondary" data-action="git" disabled>Git commit and push</button>
+          <button class="btn secondary" data-action="build" disabled>Build artifact</button>
+        </div>
+        <p class="lead" id="workflow-status">Step 1 is active. Run "Check requirements" first.</p>
+      </section>
+
+      <section class="card stack-gap" style="grid-column: 1 / -1;">
+        <h2>Output</h2>
+        <textarea id="command-output" class="output-box" spellcheck="false">AccrediCore macOS installer ready.
+</textarea>
+      </section>
+    </main>
+  </div>
+
+  <script src="../../shared/gui/app.js"></script>
+</body>
+</html>

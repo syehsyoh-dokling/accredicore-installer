@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AccrediCore Installer Launcher</title>
+  <link rel="stylesheet" href="./shared/gui/styles.css" />
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero-card">
+      <div>
+        <p class="eyebrow">AccrediCore Setup</p>
+        <h1>Universal launcher for Windows, Linux, and macOS</h1>
+        <p class="lead">
+          This launcher detects the current operating system, selects the correct native runner,
+          and keeps the installation flow aligned across platforms.
+        </p>
+      </div>
+      <div class="hero-meta">
+        <div class="status-pill" id="detected-platform">Detecting platform…</div>
+        <div class="status-pill secondary" id="runtime-mode">Browser mode</div>
+      </div>
+    </header>
+
+    <main class="grid two-columns">
+      <section class="card stack-gap">
+        <h2>Recommended action</h2>
+        <p id="recommended-copy">Checking your operating system and available launcher.</p>
+        <div class="button-row wrap" id="primary-actions"></div>
+      </section>
+
+      <section class="card stack-gap">
+        <h2>Available launchers</h2>
+        <div class="os-cards" id="os-cards"></div>
+      </section>
+
+      <section class="card stack-gap">
+        <h2>Native workflow</h2>
+        <ol class="steps-list">
+          <li>Run requirement check.</li>
+          <li>Install missing dependencies.</li>
+          <li>Resolve any port conflicts.</li>
+          <li>Clone <code>accredicore-main</code> into the target working directory.</li>
+          <li>Create the database automatically and import the bundled schema.</li>
+          <li>Request and import the unique <code>.env</code> and <code>activation.json</code> files.</li>
+        </ol>
+      </section>
+
+      <section class="card stack-gap">
+        <h2>Manual fallback paths</h2>
+        <ul class="plain-list">
+          <li>Windows GUI: <code>./windows/gui/index.html</code></li>
+          <li>Linux GUI: <code>./linux/gui/index.html</code></li>
+          <li>macOS GUI: <code>./macos/gui/index.html</code></li>
+          <li>Desktop app entry: <code>npm run app</code></li>
+        </ul>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    (function () {
+      const ua = navigator.userAgent || '';
+      const platform = navigator.platform || '';
+      const lower = (ua + ' ' + platform).toLowerCase();
+      let os = 'unknown';
+      if (lower.includes('win')) os = 'windows';
+      else if (lower.includes('mac') || lower.includes('darwin')) os = 'macos';
+      else if (lower.includes('linux') || lower.includes('x11')) os = 'linux';
+
+      const isElectron = !!(window.accredicore && window.accredicore.runtime === 'electron');
+      document.getElementById('detected-platform').textContent = 'Detected OS: ' + os;
+      document.getElementById('runtime-mode').textContent = isElectron ? 'Desktop app mode' : 'Browser mode';
+
+      const routes = {
+        windows: { label: 'Windows launcher', href: './windows/gui/index.html', runner: './windows/runner/Launch-Gui.ps1' },
+        linux:   { label: 'Linux launcher', href: './linux/gui/index.html', runner: './linux/runner/Launch-Gui.sh' },
+        macos:   { label: 'macOS launcher', href: './macos/gui/index.html', runner: './macos/runner/Launch-Gui.command' }
+      };
+
+      const cards = document.getElementById('os-cards');
+      Object.entries(routes).forEach(([key, value]) => {
+        const div = document.createElement('div');
+        div.className = 'os-card' + (key === os ? ' active' : '');
+        div.innerHTML = `
+          <h3>${key}</h3>
+          <p>${value.label}</p>
+          <p><code>${value.runner}</code></p>
+          <a class="btn secondary" href="${value.href}">Open ${key} GUI</a>
+        `;
+        cards.appendChild(div);
+      });
+
+      const recommended = document.getElementById('recommended-copy');
+      const actions = document.getElementById('primary-actions');
+      const current = routes[os];
+      if (current) {
+        recommended.textContent = `This device appears to be ${os}. Use the native runner for best results, or open the web GUI below.`;
+        const openBtn = document.createElement('a');
+        openBtn.className = 'btn primary';
+        openBtn.href = current.href;
+        openBtn.textContent = 'Open detected GUI';
+        actions.appendChild(openBtn);
+      } else {
+        recommended.textContent = 'The operating system could not be detected reliably. Choose a launcher manually.';
+      }
+    })();
+  </script>
+</body>
+</html>

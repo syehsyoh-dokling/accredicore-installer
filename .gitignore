@@ -1,9 +1,9 @@
-﻿node_modules/
-dist/
-build/
-.env
-.env.local
-coverage/
+node_modules/
+artifacts/
+logs/
 *.log
-Thumbs.db
 .DS_Store
+Thumbs.db
+windows/checker/output/*.json
+linux/checker/output/*.json
+macos/checker/output/*.json

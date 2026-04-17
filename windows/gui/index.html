@@ -3,166 +3,178 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AccrediCore Installer - Windows Stage 1</title>
-  <link rel="stylesheet" href="./styles.css" />
+  <title>AccrediCore Windows Installer</title>
+  <link rel="stylesheet" href="../../shared/gui/styles.css" />
 </head>
 <body>
-  <div class="shell">
-    <section class="hero">
-      <div class="brand">
-        <div class="logo">A</div>
-        <div class="hero-copy">
-          <div class="eyebrow">System Preparation</div>
-          <h1>Welcome to AccrediCore Installer</h1>
-          <p>
-            AccrediCore Installer is designed to simplify the deployment of AccrediCore through
-            a structured five-step setup process. It helps you validate system requirements,
-            complete missing dependencies, deploy the application source, configure the database,
-            and finalize the environment with a local URL for testing and login verification.
-          </p>
-        </div>
+  <div class="page-shell">
+    <header class="hero-card">
+      <div>
+        <p class="eyebrow">AccrediCore native installer</p>
+        <h1>Windows setup console</h1>
+        <p class="lead">The workflow is locked step-by-step: check requirements, install missing dependencies, resolve ports, clone the AccrediCore source, bootstrap the database, and import the activation configuration.</p>
       </div>
-      <div class="hero-side">
-        <button id="startHereBtn" class="start-cta" type="button">
-          <span class="line1">Start Here</span>
-          <span class="line2">Check minimum requirement server</span>
-        </button>
+      <div class="hero-meta">
+        <div class="status-pill">Platform: <span id="platform-name">windows</span></div>
+        <div class="status-pill secondary">Runtime: <span id="runtime-name">browser</span></div>
       </div>
-    </section>
+    </header>
 
-    <div class="grid">
-      <section class="card">
-        <h2>Step 1: Detected System Information</h2>
-        <p class="card-sub">
-          AccrediCore Installer has reads your local environment and you can review compatibility before continuing.
-          Please click confirm if the information below is based on your actual device:
-        </p>
-
-        <div class="info-grid">
-          <div class="info-item">
-            <div class="label">Operating System</div>
-            <div class="value" id="osName">Windows 11</div>
-          </div>
-          <div class="info-item">
-            <div class="label">OS Version</div>
-            <div class="value" id="osVersion">23H2</div>
-          </div>
-          <div class="info-item">
-            <div class="label">Architecture</div>
-            <div class="value" id="arch">x64</div>
-          </div>
-          <div class="info-item">
-            <div class="label">Check Time</div>
-            <div class="value" id="checkTime">2026-04-16 10:15</div>
-          </div>
-        </div>
-
-        <div class="actions top-gap">
-          <button id="confirmDeviceBtn" class="btn-primary" type="button">Confirm, it is my device</button>
-          <button id="wrongDeviceBtn" class="btn-secondary" type="button">No, it is the wrong device</button>
-        </div>
-
-        <div id="wrongDeviceNote" class="inline-note danger-note hidden">
-          Process stopped. Please verify the device before continuing.
-        </div>
-      </section>
-
-      <section id="requirementsSection" class="card hidden">
-        <h2>Minimum Requirements</h2>
-        <p class="card-sub">
-          These components will be validated before AccrediCore pulls the application source and prepares the local environment.
-          If you do not see any progress, please click Start Here on the top right header.
-        </p>
-
-        <div class="requirement-list" id="requirementsList">
-          <div class="requirement-row"><div><div class="req-title">Git</div><div class="req-desc">Required for downloading the AccrediCore source package or repository release.</div></div><span class="status neutral" data-key="git">Pending</span></div>
-          <div class="requirement-row"><div><div class="req-title">Node.js</div><div class="req-desc">Required to run frontend or utility services used by the local setup.</div></div><span class="status neutral" data-key="node">Pending</span></div>
-          <div class="requirement-row"><div><div class="req-title">npm or pnpm</div><div class="req-desc">Required for dependency installation during the bootstrap phase.</div></div><span class="status neutral" data-key="npm">Pending</span></div>
-          <div class="requirement-row"><div><div class="req-title">Docker / Docker Desktop</div><div class="req-desc">Required if AccrediCore services or database components run in local containers.</div></div><span class="status neutral" data-key="docker">Pending</span></div>
-          <div class="requirement-row"><div><div class="req-title">Available Disk Space</div><div class="req-desc">Minimum recommended free space: 10 GB.</div></div><span class="status neutral" data-key="disk">Pending</span></div>
-          <div class="requirement-row"><div><div class="req-title">Internet Connection</div><div class="req-desc">Required to download source files, runtime packages, or build dependencies.</div></div><span class="status neutral" data-key="internet">Pending</span></div>
-          <div class="requirement-row"><div><div class="req-title">Required Port Availability</div><div class="req-desc">Checks whether common local runtime ports are available for AccrediCore services.</div></div><span class="status neutral" data-key="ports">Pending</span></div>
-          <div class="requirement-row"><div><div class="req-title">Write Access to Working Directory</div><div class="req-desc">Installer must be able to write to the target installation and log folders.</div></div><span class="status neutral" data-key="write">Pending</span></div>
-        </div>
-      </section>
-
-      <section id="resultsSection" class="card hidden">
-        <div class="result-header">
+    <main class="grid two-columns">
+      <section class="card stack-gap">
+        <h2>Inputs</h2>
+        <div class="kv-grid">
           <div>
-            <h2>Requirement Check Results</h2>
-            <p class="card-sub">Static preview example after the system check has been completed.</p>
+            <div class="label">Working directory</div>
+            <input class="input" id="working-directory" value="C:\AccrediCore" />
           </div>
-          <div class="summary-box" id="resultsSummary">5 Passed Â· 2 Warning Â· 1 Missing</div>
-        </div>
-
-        <div class="result-list" id="resultsList"></div>
-      </section>
-
-      <section id="stepsSection" class="card hidden">
-        <h2>Deployment Steps</h2>
-        <p class="card-sub">
-          AccrediCore will guide you through each stage until the local test environment is ready.
-          Do you want to continue to step 2?
-        </p>
-
-        <div class="requirement-list">
-          <div class="requirement-row"><div><div class="req-title">Step 2 â€” Install Missing Components</div><div class="req-desc">If you do not see any progress, please click Install on the top right header to add any required tools or dependencies that are not yet available on this machine.</div></div><span class="status neutral">Step 2</span></div>
-          <div class="requirement-row"><div><div class="req-title">Step 3 â€” Deploy Source Code</div><div class="req-desc">Download and prepare the AccrediCore application source from the configured release or repository.</div></div><span class="status neutral">Step 3</span></div>
-          <div class="requirement-row"><div><div class="req-title">Step 4 â€” Set Up Database</div><div class="req-desc">Initialize the required database structure, apply migrations, and prepare the local data environment.</div></div><span class="status neutral">Step 4</span></div>
-          <div class="requirement-row"><div><div class="req-title">Step 5 â€” Finalize Setup</div><div class="req-desc">Complete the final configuration and display a local URL for testing and login verification.</div></div><span class="status neutral">Step 5</span></div>
-        </div>
-
-        <div class="actions top-gap">
-          <button id="continueToStep2Btn" class="btn-primary" type="button">Yes, continue to Step 2</button>
-          <button id="stopAfterStep1Btn" class="btn-secondary" type="button">No, stop here</button>
+          <div>
+            <div class="label">Git remote URL</div>
+            <input class="input" id="remote-url" value="https://github.com/syehsyoh-dokling/accredicore-main.git" />
+          </div>
+          <div style="grid-column: 1 / -1;">
+            <div class="label">Source ZIP path (legacy / optional)</div>
+            <input class="input" id="source-zip" value="" />
+          </div>
         </div>
       </section>
 
-      <section id="actionsSection" class="card hidden">
+      <section class="card stack-gap">
         <h2>Actions</h2>
-        <p class="card-sub">For this Windows stage, the button states are interactive and simulate the real flow.</p>
-        <div class="actions">
-          <button id="checkRequirementsBtn" class="btn-primary" type="button">Check Requirements</button>
-          <button id="fixMissingItemsBtn" class="btn-secondary" type="button">Fix Missing Items</button>
-          <button id="continueBtn" class="btn-muted" type="button" disabled>Continue</button>
-          <button id="exitBtn" class="btn-secondary" type="button">Exit</button>
+        <div class="button-row wrap">
+          <button class="btn primary" data-action="check">Step 1. Check requirements</button>
+          <button class="btn secondary" data-action="install" style="display:none;">Step 2. Install dependencies</button>
+        </div>
+        <p class="lead" id="workflow-status">Step 1 is active. Run "Check requirements" first.</p>
+      </section>
+
+      <section class="card stack-gap" id="port-resolution-wrap" style="grid-column: 1 / -1; display:none;">
+        <h2>Step 3 — Port Resolution</h2>
+        <p class="lead">Review each conflicting port and choose how AccrediCore should handle it.</p>
+        <div id="port-resolution-body"></div>
+        <div class="button-row wrap">
+          <button class="btn primary" id="apply-port-decisions" disabled>Apply port decisions</button>
         </div>
       </section>
 
-      <section class="card footer">
-        <div class="footer-top">
+      <section class="card stack-gap" id="github-step-wrap" style="grid-column: 1 / -1; display:none;">
+        <h2>Step 4 — Clone AccrediCore Source</h2>
+        <p class="lead">Choose where the final source code should be stored, then clone the `accredicore-main` repository. The installer will create the target folder automatically if needed.</p>
+
+        <div class="kv-grid">
           <div>
-            <div><strong>Working Directory:</strong> C:\AccrediCore</div>
-            <div><strong>Installer Logs:</strong> C:\AccrediCore\logs\installer.log</div>
-            <div><strong>Status:</strong> <span id="footerStatus">Ready to check system requirements</span></div>
+            <div class="label">Recommended project location</div>
+            <select class="input" id="project-location">
+              <option value="documents">Documents</option>
+              <option value="desktop">Desktop</option>
+              <option value="userhome">User home</option>
+              <option value="dev">C:\Dev</option>
+              <option value="root">C:\</option>
+              <option value="custom">Custom location</option>
+            </select>
           </div>
-          <div class="footer-meta">
-            <div class="copyright">Â© 2026 AccrediCore Installer</div>
-            <div class="version-pill">Installer Version 0.1.0</div>
+
+          <div>
+            <div class="label">Project folder name</div>
+            <input class="input" id="project-folder-name" value="AccrediCore" />
+          </div>
+
+          <div id="custom-location-wrap" style="grid-column: 1 / -1; display:none;">
+            <div class="label">Custom base path</div>
+            <div class="button-row wrap">
+              <input class="input" id="custom-base-path" style="flex:1;" value="" />
+              <button class="btn secondary" id="browse-custom-folder" type="button">Browse</button>
+            </div>
+          </div>
+
+          <div style="grid-column: 1 / -1;">
+            <div class="label">Final target path preview</div>
+            <input class="input" id="target-path-preview" readonly value="C:\Users\Saifuddin\Documents\AccrediCore" />
           </div>
         </div>
+
+        <div class="button-row wrap">
+          <button class="btn primary" id="clone-repo-btn" disabled>Clone repository from GitHub</button>
+          <button class="btn secondary" id="validate-repo-btn" disabled>Validate repository content</button>
+        </div>
+
+        <p class="lead" id="github-step-status">Step 4 is locked until requirement checks and port decisions are complete.</p>
       </section>
-    </div>
-  </div>
 
-  <div id="modal" class="modal hidden">
-    <div class="modal-card">
-      <div class="modal-header">
-        <h3 id="modalTitle">Checking requirements...</h3>
-      </div>
-      <div class="progress-shell">
-        <div class="progress-bar">
-          <div id="progressFill" class="progress-fill"></div>
+      <section class="card stack-gap" id="database-step-wrap" style="grid-column: 1 / -1; display:none;">
+        <h2>Step 5 — Create Database and Import Structure</h2>
+        <p class="lead">After the repository is validated, create the database automatically and import the bundled schema from the cloned AccrediCore project.</p>
+
+        <div class="kv-grid">
+          <div>
+            <div class="label">Database host</div>
+            <input class="input" id="db-host" value="127.0.0.1" />
+          </div>
+          <div>
+            <div class="label">Database port</div>
+            <input class="input" id="db-port" value="5432" />
+          </div>
+          <div>
+            <div class="label">Database name</div>
+            <input class="input" id="db-name" value="accredicore" />
+          </div>
+          <div>
+            <div class="label">Database user</div>
+            <input class="input" id="db-user" value="postgres" />
+          </div>
+          <div style="grid-column: 1 / -1;">
+            <div class="label">Database password</div>
+            <input class="input" id="db-password" type="password" value="" />
+          </div>
         </div>
-      </div>
-      <div id="progressText" class="progress-text">Initializing...</div>
-      <div id="progressList" class="progress-list"></div>
-      <div class="actions top-gap hidden" id="modalCloseRow">
-        <button id="modalCloseBtn" class="btn-primary" type="button">Close</button>
-      </div>
-    </div>
+
+        <div class="button-row wrap">
+          <button class="btn primary" id="bootstrap-database-btn" disabled>Create database and import structure</button>
+        </div>
+
+        <p class="lead" id="database-step-status">Step 5 is locked until repository validation completes.</p>
+      </section>
+
+      <section class="card stack-gap" id="config-step-wrap" style="grid-column: 1 / -1; display:none;">
+        <h2>Step 6 — Import Activation Configuration</h2>
+        <p class="lead">Request your deployment package from the vendor website, then import the unique `.env` file and `activation.json` file into the cloned project.</p>
+
+        <div class="button-row wrap">
+          <button class="btn secondary" id="open-activation-site-btn" type="button">Open activation website</button>
+        </div>
+
+        <div class="kv-grid">
+          <div style="grid-column: 1 / -1;">
+            <div class="label">.env file</div>
+            <div class="button-row wrap">
+              <input class="input" id="env-file-path" style="flex:1;" readonly value="" />
+              <button class="btn secondary" id="browse-env-btn" type="button">Browse</button>
+            </div>
+          </div>
+          <div style="grid-column: 1 / -1;">
+            <div class="label">activation.json file</div>
+            <div class="button-row wrap">
+              <input class="input" id="activation-file-path" style="flex:1;" readonly value="" />
+              <button class="btn secondary" id="browse-activation-btn" type="button">Browse</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="button-row wrap">
+          <button class="btn primary" id="import-config-btn" disabled>Import configuration files</button>
+        </div>
+
+        <p class="lead" id="config-step-status">Step 6 is locked until database bootstrap completes.</p>
+      </section>
+
+      <section class="card stack-gap" style="grid-column: 1 / -1;">
+        <h2>Output</h2>
+        <textarea id="command-output" class="output-box" spellcheck="false">AccrediCore Windows installer ready.
+</textarea>
+      </section>
+    </main>
   </div>
 
-  <script src="./app.js"></script>
+  <script src="../../shared/gui/app.js"></script>
 </body>
 </html>
