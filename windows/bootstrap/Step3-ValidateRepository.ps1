@@ -24,7 +24,6 @@ try {
     "app-source",
     "config\env",
     "database\bootstrap",
-    "database\bootstrap\local_full_schema_dump.sql",
     "docs",
     "scripts"
   )
@@ -40,11 +39,38 @@ try {
     throw "Validation failed: missing AccrediCore project paths: $($missingPaths -join ', ')"
   }
 
+  $schemaCandidates = @(
+    "database\bootstrap\local_full_schema_dump.sql",
+    "database\bootstrap\merged_supabase_migrations.sql"
+  )
+  $schemaFound = $false
+  foreach ($schemaPath in $schemaCandidates) {
+    if (Test-Path -LiteralPath (Join-Path $ProjectRoot $schemaPath)) {
+      $schemaFound = $true
+      break
+    }
+  }
+
+  $migrationDir = Join-Path $ProjectRoot "app-source\supabase\migrations"
+  $migrationCount = 0
+  if (Test-Path -LiteralPath $migrationDir) {
+    $migrationCount = @(Get-ChildItem -LiteralPath $migrationDir -Filter "*.sql" -File).Count
+  }
+
+  if (-not $schemaFound -and $migrationCount -eq 0) {
+    throw "Validation failed: no database bootstrap schema or Supabase migration files were found."
+  }
+
   Write-Host "STEP 4 RESULT"
   Write-Host "- Repository validation passed."
   Write-Host "- .git folder detected."
   Write-Host "- AccrediCore project structure detected."
   Write-Host "- Required paths found: $($requiredPaths -join ', ')"
+  if ($schemaFound) {
+    Write-Host "- Database bootstrap schema detected."
+  } else {
+    Write-Host "- Supabase migration files detected: $migrationCount file(s)."
+  }
   exit 0
 }
 catch {
