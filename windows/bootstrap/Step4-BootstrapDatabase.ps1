@@ -107,6 +107,22 @@ try {
   }
 
   Write-Host "- Database structure import completed successfully."
+  Write-Host "- Running smoke test: database connection and table visibility."
+
+  $smokeSql = "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public';"
+  $smokeOutput = & psql -h $DbHost -p $DbPort -U $DbUser -d $DbName -tAc $smokeSql 2>&1
+  if ($LASTEXITCODE -ne 0) {
+    throw "Database smoke test failed. Details: $smokeOutput"
+  }
+
+  $tableCount = ($smokeOutput | Out-String).Trim()
+  if ([string]::IsNullOrWhiteSpace($tableCount) -or -not ($tableCount -match '^\d+$')) {
+    throw "Database smoke test returned an unexpected result: $smokeOutput"
+  }
+
+  Write-Host "- Database connection smoke test passed."
+  Write-Host "- Public table/view objects detected: $tableCount"
+  Write-Host "- Step 5 completed. Continue to Step 6 to import .env and activation.json."
   exit 0
 }
 finally {

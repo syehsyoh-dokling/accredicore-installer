@@ -18,7 +18,8 @@
 
     portDecisions: {},
     envPath: '',
-    activationPath: ''
+    activationPath: '',
+    activationRequest: null
   };
 
   function byId(id) {
@@ -607,7 +608,7 @@
 
     if (result.code === 0) {
       state.dbBootstrapCompleted = true;
-      appendOutput('Database bootstrap completed successfully. Step 6 is now unlocked.');
+      appendOutput('Database bootstrap and smoke test completed successfully. Step 6 is now unlocked.');
     }
 
     refreshWorkflow();
@@ -660,13 +661,85 @@
   }
 
   async function openActivationWebsite() {
-    const url = 'https://danandad.com/';
+    const url = 'https://danandad.com/#activation';
     if (window.accredicore && typeof window.accredicore.openExternal === 'function') {
       await window.accredicore.openExternal(url);
       return;
     }
 
     window.open(url, '_blank', 'noopener,noreferrer');
+  }
+
+  function randomChunk(length) {
+    const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    const bytes = new Uint8Array(length);
+    if (window.crypto && window.crypto.getRandomValues) {
+      window.crypto.getRandomValues(bytes);
+    } else {
+      for (let i = 0; i < length; i += 1) bytes[i] = Math.floor(Math.random() * 255);
+    }
+    return Array.from(bytes).map((value) => alphabet[value % alphabet.length]).join('');
+  }
+
+  function buildOfflineActivationRequest() {
+    const targetDir = String(byId('target-path-preview')?.value || getSelectedBasePath() || '').trim();
+    const dbName = String(byId('db-name')?.value || '').trim();
+    const code = `ACH-OFF-${randomChunk(4)}-${randomChunk(4)}-${randomChunk(4)}`;
+
+    return {
+      product: 'Arab Compliance Hub',
+      request_type: 'offline_activation',
+      installation_code: code,
+      generated_at: new Date().toISOString(),
+      target_directory: targetDir,
+      database_name: dbName,
+      platform: state.platform,
+      instructions: 'Open https://danandad.com/#activation from another device, enter this installation_code, then download the unique .env and activation.json after vendor approval.'
+    };
+  }
+
+  function showActivationGuidance(mode) {
+    const wrap = byId('activation-guidance');
+    const title = byId('activation-guidance-title');
+    const text = byId('activation-guidance-text');
+    const downloadBtn = byId('download-activation-request-btn');
+    if (!wrap || !title || !text) return;
+
+    wrap.style.display = '';
+    if (mode === 'online') {
+      state.activationRequest = null;
+      title.textContent = 'Online activation';
+      text.textContent = 'Use the vendor portal to request or download your unique .env and activation.json for this deployment. Recommended location: a secure vendor portal endpoint, not public GitHub, because these files are customer-specific and must be approved/signed.';
+      if (downloadBtn) downloadBtn.style.display = 'none';
+      appendOutput('Step 6 online selected. Opening vendor activation portal for unique .env and activation.json.');
+      openActivationWebsite();
+      return;
+    }
+
+    state.activationRequest = buildOfflineActivationRequest();
+    title.textContent = 'Offline activation code';
+    text.textContent = `Installation code: ${state.activationRequest.installation_code}. Open https://danandad.com/#activation from another device, enter this code, then download the unique .env and activation.json after vendor approval.`;
+    if (downloadBtn) downloadBtn.style.display = '';
+    appendOutput('Step 6 offline selected.');
+    appendOutput(`Offline installation code: ${state.activationRequest.installation_code}`);
+    appendOutput('Open https://danandad.com/#activation from another device and submit this code to request unique .env and activation.json.');
+  }
+
+  function downloadActivationRequest() {
+    if (!state.activationRequest) {
+      state.activationRequest = buildOfflineActivationRequest();
+    }
+
+    const blob = new Blob([JSON.stringify(state.activationRequest, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = 'activation-request.json';
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+    appendOutput('activation-request.json download prepared. Use it on the vendor portal if code entry is inconvenient.');
   }
 
   function refreshWorkflow() {
@@ -865,6 +938,9 @@
     const browseActivationBtn = byId('browse-activation-btn');
     const importConfigBtn = byId('import-config-btn');
     const openActivationSiteBtn = byId('open-activation-site-btn');
+    const activationOnlineBtn = byId('activation-online-btn');
+    const activationOfflineBtn = byId('activation-offline-btn');
+    const downloadActivationRequestBtn = byId('download-activation-request-btn');
     const nextValidateRepoBtn = byId('next-validate-repo-btn');
     const nextBootstrapDatabaseBtn = byId('next-bootstrap-database-btn');
     const nextImportConfigBtn = byId('next-import-config-btn');
@@ -876,6 +952,9 @@
     if (browseActivationBtn) browseActivationBtn.addEventListener('click', () => browseForConfig('activation'));
     if (importConfigBtn) importConfigBtn.addEventListener('click', importConfig);
     if (openActivationSiteBtn) openActivationSiteBtn.addEventListener('click', openActivationWebsite);
+    if (activationOnlineBtn) activationOnlineBtn.addEventListener('click', () => showActivationGuidance('online'));
+    if (activationOfflineBtn) activationOfflineBtn.addEventListener('click', () => showActivationGuidance('offline'));
+    if (downloadActivationRequestBtn) downloadActivationRequestBtn.addEventListener('click', downloadActivationRequest);
     if (nextValidateRepoBtn) nextValidateRepoBtn.addEventListener('click', validateRepo);
     if (nextBootstrapDatabaseBtn) nextBootstrapDatabaseBtn.addEventListener('click', bootstrapDatabase);
     if (nextImportConfigBtn) nextImportConfigBtn.addEventListener('click', () => {

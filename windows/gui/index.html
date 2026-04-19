@@ -136,11 +136,21 @@
       </section>
 
       <section class="card stack-gap" id="config-step-wrap" style="grid-column: 1 / -1; display:none;">
-        <h2>Step 6 — Import Activation Configuration</h2>
-        <p class="lead">Request your deployment package from the vendor website, then import the unique `.env` file and `activation.json` file into the cloned project.</p>
+        <h2>Step 6 — Activation Configuration</h2>
+        <p class="lead">Choose the activation path. If this device has internet, open the vendor portal to request or download the unique `.env` and `activation.json`. If this device is offline, generate an offline activation code and submit it from another device.</p>
 
         <div class="button-row wrap">
-          <button class="btn secondary" id="open-activation-site-btn" type="button">Open activation website</button>
+          <button class="btn primary" id="activation-online-btn" type="button">Yes, this device is online</button>
+          <button class="btn secondary" id="activation-offline-btn" type="button">No, this device is offline</button>
+        </div>
+
+        <div class="next-step-panel" id="activation-guidance" style="display:none;">
+          <h3 id="activation-guidance-title">Activation guidance</h3>
+          <p class="lead" id="activation-guidance-text"></p>
+          <div class="button-row wrap">
+            <button class="btn secondary" id="open-activation-site-btn" type="button">Open vendor activation website</button>
+            <button class="btn secondary" id="download-activation-request-btn" type="button" style="display:none;">Download activation-request.json</button>
+          </div>
         </div>
 
         <div class="kv-grid">
