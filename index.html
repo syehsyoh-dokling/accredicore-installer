@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AccrediCore Installer Launcher</title>
+  <title>Arab Compliance Hub Installer Launcher</title>
   <link rel="stylesheet" href="./shared/gui/styles.css" />
 </head>
 <body>
   <div class="page-shell">
     <header class="hero-card">
       <div>
-        <p class="eyebrow">AccrediCore Setup</p>
+        <p class="eyebrow">Arab Compliance Hub Installer</p>
         <h1>Universal launcher for Windows, Linux, and macOS</h1>
         <p class="lead">
           This launcher detects the current operating system, selects the correct native runner,
@@ -18,7 +18,7 @@
         </p>
       </div>
       <div class="hero-meta">
-        <div class="status-pill" id="detected-platform">Detecting platform…</div>
+        <div class="status-pill" id="detected-platform">Detecting platform...</div>
         <div class="status-pill secondary" id="runtime-mode">Browser mode</div>
       </div>
     </header>
@@ -28,6 +28,11 @@
         <h2>Recommended action</h2>
         <p id="recommended-copy">Checking your operating system and available launcher.</p>
         <div class="button-row wrap" id="primary-actions"></div>
+        <p class="lead" id="zip-warning" style="display:none;">
+          This page appears to be opened from a ZIP preview or temporary folder. Extract
+          <code>accredicore-installer-final.zip</code> first, open
+          <code>Arab-Compaliance-Hub-Installer</code>, then run the launcher file.
+        </p>
       </section>
 
       <section class="card stack-gap">
@@ -50,10 +55,10 @@
       <section class="card stack-gap">
         <h2>Manual fallback paths</h2>
         <ul class="plain-list">
-          <li>Windows GUI: <code>./windows/gui/index.html</code></li>
-          <li>Linux GUI: <code>./linux/gui/index.html</code></li>
-          <li>macOS GUI: <code>./macos/gui/index.html</code></li>
-          <li>Desktop app entry: <code>npm run app</code></li>
+          <li>Windows launcher: <code>./Start-Installer-for-windows.bat</code></li>
+          <li>Linux launcher: <code>./Start-Installer-for-linux.sh</code></li>
+          <li>macOS launcher: <code>./Start-Installer-for-macos.command</code></li>
+          <li>Browser fallback: <code>./windows/gui/index.html</code>, <code>./linux/gui/index.html</code>, or <code>./macos/gui/index.html</code></li>
         </ul>
       </section>
     </main>
@@ -61,49 +66,67 @@
 
   <script>
     (function () {
-      const ua = navigator.userAgent || '';
-      const platform = navigator.platform || '';
-      const lower = (ua + ' ' + platform).toLowerCase();
-      let os = 'unknown';
-      if (lower.includes('win')) os = 'windows';
-      else if (lower.includes('mac') || lower.includes('darwin')) os = 'macos';
-      else if (lower.includes('linux') || lower.includes('x11')) os = 'linux';
+      const ua = navigator.userAgent || "";
+      const platform = navigator.platform || "";
+      const lower = (ua + " " + platform).toLowerCase();
+      const href = decodeURIComponent(window.location.href);
+      let os = "unknown";
+      if (lower.includes("win")) os = "windows";
+      else if (lower.includes("mac") || lower.includes("darwin")) os = "macos";
+      else if (lower.includes("linux") || lower.includes("x11")) os = "linux";
 
-      const isElectron = !!(window.accredicore && window.accredicore.runtime === 'electron');
-      document.getElementById('detected-platform').textContent = 'Detected OS: ' + os;
-      document.getElementById('runtime-mode').textContent = isElectron ? 'Desktop app mode' : 'Browser mode';
+      const isElectron = !!(window.accredicore && window.accredicore.runtime === "electron");
+      const openedFromZip = /appdata\/local\/temp/i.test(href) || /\.zip/i.test(href);
+      document.getElementById("detected-platform").textContent = "Detected OS: " + os;
+      document.getElementById("runtime-mode").textContent = isElectron ? "Desktop app mode" : "Browser mode";
+      document.getElementById("zip-warning").style.display = openedFromZip ? "block" : "none";
 
       const routes = {
-        windows: { label: 'Windows launcher', href: './windows/gui/index.html', runner: './windows/runner/Launch-Gui.ps1' },
-        linux:   { label: 'Linux launcher', href: './linux/gui/index.html', runner: './linux/runner/Launch-Gui.sh' },
-        macos:   { label: 'macOS launcher', href: './macos/gui/index.html', runner: './macos/runner/Launch-Gui.command' }
+        windows: {
+          label: "Windows launcher",
+          href: "./windows/gui/index.html",
+          runner: "./Start-Installer-for-windows.bat",
+          instruction: "Run Start-Installer-for-windows.bat from the extracted folder."
+        },
+        linux: {
+          label: "Linux launcher",
+          href: "./linux/gui/index.html",
+          runner: "./Start-Installer-for-linux.sh",
+          instruction: "Run chmod +x ./Start-Installer-for-linux.sh, then ./Start-Installer-for-linux.sh."
+        },
+        macos: {
+          label: "macOS launcher",
+          href: "./macos/gui/index.html",
+          runner: "./Start-Installer-for-macos.command",
+          instruction: "Run chmod +x ./Start-Installer-for-macos.command, then ./Start-Installer-for-macos.command."
+        }
       };
 
-      const cards = document.getElementById('os-cards');
-      Object.entries(routes).forEach(([key, value]) => {
-        const div = document.createElement('div');
-        div.className = 'os-card' + (key === os ? ' active' : '');
+      const cards = document.getElementById("os-cards");
+      Object.entries(routes).forEach(function ([key, value]) {
+        const div = document.createElement("div");
+        div.className = "os-card" + (key === os ? " active" : "");
         div.innerHTML = `
           <h3>${key}</h3>
           <p>${value.label}</p>
           <p><code>${value.runner}</code></p>
-          <a class="btn secondary" href="${value.href}">Open ${key} GUI</a>
+          <a class="btn secondary" href="${value.href}">Open ${key} GUI fallback</a>
         `;
         cards.appendChild(div);
       });
 
-      const recommended = document.getElementById('recommended-copy');
-      const actions = document.getElementById('primary-actions');
+      const recommended = document.getElementById("recommended-copy");
+      const actions = document.getElementById("primary-actions");
       const current = routes[os];
       if (current) {
-        recommended.textContent = `This device appears to be ${os}. Use the native runner for best results, or open the web GUI below.`;
-        const openBtn = document.createElement('a');
-        openBtn.className = 'btn primary';
+        recommended.textContent = "This device appears to be " + os + ". " + current.instruction;
+        const openBtn = document.createElement("a");
+        openBtn.className = "btn primary";
         openBtn.href = current.href;
-        openBtn.textContent = 'Open detected GUI';
+        openBtn.textContent = "Open detected GUI fallback";
         actions.appendChild(openBtn);
       } else {
-        recommended.textContent = 'The operating system could not be detected reliably. Choose a launcher manually.';
+        recommended.textContent = "The operating system could not be detected reliably. Choose a launcher manually.";
       }
     })();
   </script>

@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
   const state = {
     platform: 'unknown',
     runtime: (window.accredicore && window.accredicore.runtime) || 'browser',
@@ -460,7 +460,10 @@
 
   async function runStandardAction(action) {
     if (!(window.accredicore && typeof window.accredicore.runAction === 'function')) {
-      appendOutput('Desktop runtime is not available in browser-only mode. Use npm run app or native runner.');
+      appendOutput('Desktop runtime is not available in browser-only mode.');
+      appendOutput('For Windows, extract the installer ZIP and run Start-Installer-for-windows.bat from the root installer folder.');
+      appendOutput('The BAT launcher will check Node.js/npm and ask for approval before downloading launcher dependencies.');
+      appendOutput('If Node.js is missing, the launcher can open the official Node.js LTS download page.');
       return;
     }
 
@@ -764,6 +767,15 @@
     setText('platform-name', platform);
     setText('runtime-name', state.runtime);
 
+    if (state.runtime === 'browser') {
+      appendOutput('Browser-only mode detected.');
+      appendOutput('Step 1 cannot run native requirement checks from a normal browser tab.');
+      appendOutput('Windows users: close this browser-only launcher, then run Start-Installer-for-windows.bat from the extracted installer root folder.');
+      appendOutput('The BAT launcher will show a warning first. It will ask permission before opening the Node.js download page or running npm install.');
+      appendOutput('Technical fallback: install Node.js LTS, run npm install, then run npm run app from the installer folder.');
+      appendOutput('');
+    }
+
     const buttons = document.querySelectorAll('[data-action]');
     buttons.forEach((btn) => {
       btn.addEventListener('click', () => runStandardAction(btn.dataset.action));
@@ -807,3 +819,4 @@
   window.AccrediCoreGui = { init };
   document.addEventListener('DOMContentLoaded', init);
 })();
+
