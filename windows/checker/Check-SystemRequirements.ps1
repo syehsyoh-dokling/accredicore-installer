@@ -128,7 +128,7 @@ $result = [pscustomobject]@{
         node = if ($node.found) { "Passed" } else { "Missing" }
         package_manager = if ($pkgFound) { if ($npm.found -and -not $pnpm.found) { "Warning" } else { "Passed" } } else { "Missing" }
         docker = if ($dockerFound) { "Passed" } else { "Missing" }
-        postgres_client = if ($postgresClientFound) { "Passed" } else { "Missing" }
+        postgres_client = if ($postgresClientFound) { "Passed" } else { "Warning" }
         disk_space = if ($freeGb -ge $MinimumDiskGb) { "Passed" } else { "Missing" }
         internet = if ($internetOk) { "Passed" } else { "Missing" }
         ports = if ($portAnyInUse) { "Warning" } else { "Passed" }
@@ -171,10 +171,10 @@ $result = [pscustomobject]@{
         }
         postgres_client = [pscustomobject]@{
             title = "PostgreSQL Client (psql)"
-            status = if ($postgresClientFound) { "Passed" } else { "Missing" }
+            status = if ($postgresClientFound) { "Passed" } else { "Warning" }
             version = $psql.version
             path = $psql.path
-            detail = if ($postgresClientFound) { "psql detected successfully." } else { "psql was not detected in the system path." }
+            detail = if ($postgresClientFound) { "psql detected successfully." } else { "psql was not detected in the system path. You can continue to clone source code, but Step 5 database import will require PostgreSQL client access." }
         }
         disk_space = [pscustomobject]@{
             title = "Available Disk Space"

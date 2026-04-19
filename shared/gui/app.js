@@ -115,10 +115,10 @@
   }
 
   function hasDependencyIssues(report) {
-    const dependencyKeys = ['git', 'node', 'package_manager', 'docker', 'postgres_client', 'disk_space', 'internet', 'write_access'];
+    const dependencyKeys = ['git', 'node', 'package_manager', 'docker', 'disk_space', 'internet', 'write_access'];
     return dependencyKeys.some((key) => {
       const value = getSummaryStatus(report, key);
-      return value && value !== 'passed';
+      return value === 'missing' || value === 'failed';
     });
   }
 
@@ -657,10 +657,10 @@
     setButtonEnabled('install', showInstall);
 
     const applyBtn = byId('apply-port-decisions');
-    if (applyBtn) applyBtn.disabled = !(state.checkCompleted && state.portIssues && allPortDecisionsComplete());
+    if (applyBtn) applyBtn.disabled = !(state.checkCompleted && state.portIssues && !state.portResolved && allPortDecisionsComplete());
 
     const portWrap = byId('port-resolution-wrap');
-    if (portWrap) portWrap.style.display = (state.checkCompleted && state.portIssues) ? '' : 'none';
+    if (portWrap) portWrap.style.display = (state.checkCompleted && state.portIssues && !state.portResolved) ? '' : 'none';
 
     const githubWrap = byId('github-step-wrap');
     if (githubWrap) githubWrap.style.display = checksPassed ? '' : 'none';
@@ -710,8 +710,8 @@
     }
 
     if (!state.cloneCompleted) {
-      setWorkflowStatus('Checks passed. Step 4 is active: clone the AccrediCore repository from GitHub.');
-      setGithubStepStatus('Choose the project location, then clone the repository. The installer will create the target folder automatically.');
+      setWorkflowStatus('Checks passed. Step 4 is active: start clone source code.');
+      setGithubStepStatus('Choose the project location, then click "Step 4. Start clone source code". The installer will create the target folder automatically.');
       if (dbStatus) dbStatus.textContent = 'Step 5 is locked until repository validation completes.';
       if (configStatus) configStatus.textContent = 'Step 6 is locked until database bootstrap completes.';
       return;
