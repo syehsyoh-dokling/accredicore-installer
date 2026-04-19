@@ -1,6 +1,7 @@
 ﻿const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
 const path = require('path');
 const { spawn } = require('child_process');
+const fs = require('fs');
 
 function getPlatformKey() {
   if (process.platform === 'win32') return 'windows';
@@ -122,9 +123,27 @@ ipcMain.handle('accredicore:get-home-info', async () => {
   return {
     home,
     desktop: app.getPath('desktop'),
+    downloads: app.getPath('downloads'),
     documents: app.getPath('documents'),
     username: path.basename(home)
   };
+});
+
+ipcMain.handle('accredicore:get-download-preference', async () => {
+  const candidates = [
+    path.join(app.getPath('downloads'), 'accredicore-installer-preference.json'),
+    path.join(__dirname, '..', 'accredicore-installer-preference.json')
+  ];
+
+  for (const filePath of candidates) {
+    try {
+      if (!fs.existsSync(filePath)) continue;
+      const parsed = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+      return { ...parsed, source_path: filePath };
+    } catch (_error) {}
+  }
+
+  return null;
 });
 
 ipcMain.handle('accredicore:run-action', async (_event, payload) => {

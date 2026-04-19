@@ -171,6 +171,18 @@
         <h2>Output</h2>
         <textarea id="command-output" class="output-box" spellcheck="false">AccrediCore Windows installer ready.
 </textarea>
+        <div class="next-step-panel" id="next-step-panel" style="display:none;">
+          <div>
+            <p class="eyebrow" id="next-step-kicker">Next step</p>
+            <h3 id="next-step-title">Step 5 — Database Set-up</h3>
+            <p class="lead" id="next-step-text">Create the database, import the table structure from the cloned repository, and test the connection.</p>
+          </div>
+          <div class="button-row wrap">
+            <button class="btn secondary" id="next-validate-repo-btn" type="button" style="display:none;">Validate source code first</button>
+            <button class="btn primary" id="next-bootstrap-database-btn" type="button" style="display:none;">Step 5. Database Set-up</button>
+            <button class="btn secondary" id="next-import-config-btn" type="button" style="display:none;">Step 6. Import configuration</button>
+          </div>
+        </div>
       </section>
     </main>
   </div>

@@ -90,9 +90,32 @@
     state.homeInfo = {
       home: 'C:\\Users\\User',
       desktop: 'C:\\Users\\User\\Desktop',
+      downloads: 'C:\\Users\\User\\Downloads',
       documents: 'C:\\Users\\User\\Documents',
       username: 'User'
     };
+  }
+
+  async function applyDownloadPreference() {
+    if (!(window.accredicore && typeof window.accredicore.getDownloadPreference === 'function')) return;
+
+    try {
+      const preference = await window.accredicore.getDownloadPreference();
+      if (!preference || !preference.preferred_location) return;
+
+      const locationSelect = byId('project-location');
+      if (!locationSelect) return;
+
+      const normalized = String(preference.preferred_location).trim().toLowerCase();
+      const allowed = Array.from(locationSelect.options).map((option) => option.value);
+      if (!allowed.includes(normalized)) return;
+
+      locationSelect.value = normalized;
+      appendOutput(`Deployment preference loaded: project target defaults to ${normalized}.`);
+      if (preference.source_path) appendOutput(`Preference file: ${preference.source_path}`);
+    } catch (error) {
+      appendOutput('Could not load deployment preference: ' + (error && error.message ? error.message : String(error)));
+    }
   }
 
   function extractJsonBlock(text) {
@@ -507,13 +530,10 @@
     const repoUrl = (byId('remote-url')?.value || '').trim();
     let targetDir = String(byId('target-path-preview')?.value || getSelectedBasePath() || '').trim();
 
-    if (state.platform === 'windows') {
-      const looksAbsolute = /^[A-Za-z]:\\/.test(targetDir);
-      if (!looksAbsolute) {
-        targetDir = 'C:\\Users\\Saifuddin\\Documents\\AccrediCore';
-        const preview = byId('target-path-preview');
-        if (preview) preview.value = targetDir;
-      }
+    if (state.platform === 'windows' && !/^[A-Za-z]:\\/.test(targetDir)) {
+      targetDir = getSelectedBasePath();
+      const preview = byId('target-path-preview');
+      if (preview) preview.value = targetDir;
     }
 
     if (!repoUrl) {
@@ -535,6 +555,7 @@
       state.repoValidated = false;
       state.dbBootstrapCompleted = false;
       state.configImported = false;
+      appendOutput('Next: validate the cloned source code, then continue to Step 5 Database Set-up below this output box.');
     }
 
     refreshWorkflow();
@@ -682,6 +703,8 @@
     if (dbBtn) dbBtn.disabled = !state.repoValidated;
     if (importBtn) importBtn.disabled = !(state.dbBootstrapCompleted && state.envPath && state.activationPath);
 
+    refreshNextStepPanel();
+
     const dbStatus = byId('database-step-status');
     const configStatus = byId('config-step-status');
 
@@ -751,6 +774,47 @@
     if (configStatus) configStatus.textContent = 'Configuration files imported successfully.';
   }
 
+  function refreshNextStepPanel() {
+    const panel = byId('next-step-panel');
+    if (!panel) return;
+
+    const title = byId('next-step-title');
+    const text = byId('next-step-text');
+    const validate = byId('next-validate-repo-btn');
+    const db = byId('next-bootstrap-database-btn');
+    const config = byId('next-import-config-btn');
+
+    [validate, db, config].forEach((btn) => {
+      if (btn) btn.style.display = 'none';
+    });
+
+    if (state.cloneCompleted && !state.repoValidated) {
+      panel.style.display = '';
+      if (title) title.textContent = 'Step 4 — Validate Source Code';
+      if (text) text.textContent = 'Clone completed successfully. Validate the repository content before database setup.';
+      if (validate) validate.style.display = '';
+      return;
+    }
+
+    if (state.repoValidated && !state.dbBootstrapCompleted) {
+      panel.style.display = '';
+      if (title) title.textContent = 'Step 5 — Database Set-up';
+      if (text) text.textContent = 'Create the database, import the table structure from the cloned AccrediCore repository, and test the connection.';
+      if (db) db.style.display = '';
+      return;
+    }
+
+    if (state.dbBootstrapCompleted && !state.configImported) {
+      panel.style.display = '';
+      if (title) title.textContent = 'Step 6 — Import Configuration';
+      if (text) text.textContent = 'Database setup is complete. Import the unique .env and activation.json files to finish configuration.';
+      if (config) config.style.display = '';
+      return;
+    }
+
+    panel.style.display = 'none';
+  }
+
   async function browseCustomFolder() {
     if (!(window.accredicore && typeof window.accredicore.selectFolder === 'function')) return;
     const selected = await window.accredicore.selectFolder();
@@ -801,6 +865,9 @@
     const browseActivationBtn = byId('browse-activation-btn');
     const importConfigBtn = byId('import-config-btn');
     const openActivationSiteBtn = byId('open-activation-site-btn');
+    const nextValidateRepoBtn = byId('next-validate-repo-btn');
+    const nextBootstrapDatabaseBtn = byId('next-bootstrap-database-btn');
+    const nextImportConfigBtn = byId('next-import-config-btn');
 
     if (cloneBtn) cloneBtn.addEventListener('click', cloneRepo);
     if (validateBtn) validateBtn.addEventListener('click', validateRepo);
@@ -809,8 +876,15 @@
     if (browseActivationBtn) browseActivationBtn.addEventListener('click', () => browseForConfig('activation'));
     if (importConfigBtn) importConfigBtn.addEventListener('click', importConfig);
     if (openActivationSiteBtn) openActivationSiteBtn.addEventListener('click', openActivationWebsite);
+    if (nextValidateRepoBtn) nextValidateRepoBtn.addEventListener('click', validateRepo);
+    if (nextBootstrapDatabaseBtn) nextBootstrapDatabaseBtn.addEventListener('click', bootstrapDatabase);
+    if (nextImportConfigBtn) nextImportConfigBtn.addEventListener('click', () => {
+      const wrap = byId('config-step-wrap');
+      if (wrap) wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
 
     if (locationSelect && !locationSelect.value) locationSelect.value = 'documents';
+    await applyDownloadPreference();
     refreshTargetPreview();
     setButtonVisible('install', false);
     refreshWorkflow();

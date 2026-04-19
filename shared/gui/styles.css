@@ -59,6 +59,13 @@ h1, h2, h3 { margin-top: 0; }
   width: 100%; min-height: 280px; resize: vertical; border-radius: 18px; border: 1px solid var(--border);
   background: #0a1227; color: #d8e3ff; padding: 16px; font-family: Consolas, monospace;
 }
+.next-step-panel {
+  margin-top: 16px;
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(137,240,200,.28);
+  background: linear-gradient(135deg, rgba(137,240,200,.12), rgba(78,168,255,.10));
+}
 .kv-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .label { font-size: 13px; color: var(--muted); margin-bottom: 6px; }
 .input {
