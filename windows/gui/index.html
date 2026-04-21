@@ -51,6 +51,7 @@
         <div class="button-row wrap">
           <button class="btn primary" data-action="check" data-i18n="step1Button">Step 1. Check requirements</button>
           <button class="btn secondary" data-action="install" style="display:none;" data-i18n="step2Button">Step 2. Install dependencies</button>
+          <button class="btn secondary" id="rerun-check-btn" type="button" style="display:none;" data-i18n="rerunCheckButton">Re-run Step 1 Check</button>
         </div>
         <p class="lead" id="workflow-status" data-i18n="workflowInitial">Step 1 is active. Run "Check requirements" first.</p>
       </section>
@@ -223,6 +224,7 @@
             <p class="lead" id="next-step-text">Create the database, import the table structure from the cloned repository, and test the connection.</p>
           </div>
           <div class="button-row wrap">
+            <button class="btn primary" id="next-rerun-check-btn" type="button" style="display:none;" data-i18n="rerunCheckButton">Re-run Step 1 Check</button>
             <button class="btn secondary" id="next-validate-repo-btn" type="button" style="display:none;" data-i18n="nextValidateRepo">Validate source code first</button>
             <button class="btn primary" id="next-bootstrap-database-btn" type="button" style="display:none;" data-i18n="nextBootstrapDatabase">Step 5A/5B. Database Set-up</button>
             <button class="btn secondary" id="next-import-config-btn" type="button" style="display:none;" data-i18n="nextImportConfig">Step 6. Import configuration</button>

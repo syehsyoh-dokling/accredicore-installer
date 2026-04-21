@@ -41,6 +41,7 @@
       actionsTitle: 'Actions',
       step1Button: 'Step 1. Check requirements',
       step2Button: 'Step 2. Install dependencies',
+      rerunCheckButton: 'Re-run Step 1 Check',
       workflowInitial: 'Step 1 is active. Run "Check requirements" first.',
       step3Title: 'Step 3 — Port Resolution',
       step3Lead: 'Review each conflicting port and choose how AccrediCore should handle it.',
@@ -93,6 +94,9 @@
       step8Locked: 'Step 8 is locked until the servers are launched.',
       outputTitle: 'Output',
       nextStepKicker: 'Next step',
+      nextRerunCheckTitle: 'Step 1 — Re-check Requirements',
+      nextRerunAfterInstall: 'Dependency installation finished. Re-run Step 1 so the installer can unlock the next step only after PostgreSQL Client (psql), npm/pnpm, Docker, and other required checks pass.',
+      nextRerunAfterWarning: 'Missing dependencies were detected. Run Step 2 Install Dependencies first, then re-run Step 1 Check Requirements.',
       nextValidateRepo: 'Validate source code first',
       nextBootstrapDatabase: 'Step 5A/5B. Database Set-up',
       nextImportConfig: 'Step 6. Import configuration',
@@ -118,6 +122,7 @@
       actionsTitle: 'الإجراءات',
       step1Button: 'الخطوة 1. فحص المتطلبات',
       step2Button: 'الخطوة 2. تثبيت المتطلبات',
+      rerunCheckButton: 'إعادة فحص الخطوة 1',
       workflowInitial: 'الخطوة 1 فعالة. شغل فحص المتطلبات أولا.',
       step3Title: 'الخطوة 3 — معالجة المنافذ',
       step3Lead: 'راجع المنافذ المتعارضة واختر كيف يتعامل معها النظام.',
@@ -170,6 +175,9 @@
       step8Locked: 'الخطوة 8 مقفلة حتى يتم تشغيل الخوادم.',
       outputTitle: 'المخرجات',
       nextStepKicker: 'الخطوة التالية',
+      nextRerunCheckTitle: 'الخطوة 1 — إعادة فحص المتطلبات',
+      nextRerunAfterInstall: 'انتهى تثبيت المتطلبات. أعد فحص الخطوة 1 حتى يفتح المثبت الخطوة التالية فقط بعد نجاح PostgreSQL Client (psql) و npm/pnpm و Docker وبقية الفحوصات المطلوبة.',
+      nextRerunAfterWarning: 'تم اكتشاف متطلبات ناقصة. شغل الخطوة 2 لتثبيت المتطلبات أولا، ثم أعد فحص الخطوة 1.',
       nextValidateRepo: 'تحقق من المصدر أولا',
       nextBootstrapDatabase: 'الخطوة 5A/5B. إعداد قاعدة البيانات',
       nextImportConfig: 'الخطوة 6. استيراد الإعدادات',
@@ -594,8 +602,9 @@
     lines.push('Instruction:');
     if (hasDependencyIssues(report)) {
       lines.push('1. Run "Install dependencies".');
-      lines.push('2. Run "Check requirements" again.');
+      lines.push('2. Click "Re-run Step 1 Check" after dependency installation finishes.');
       lines.push('3. Continue only when all required dependencies pass.');
+      lines.push('4. If PostgreSQL was just installed, restart this installer once, then click "Re-run Step 1 Check".');
     } else {
       lines.push('1. Step 4 is now active: clone the AccrediCore repository.');
       lines.push('2. Choose the project location.');
@@ -622,6 +631,8 @@
       state.configImported = false;
       state.serverStarted = false;
       state.loginShown = false;
+    } else {
+      state.installCompleted = false;
     }
 
     renderPortResolution(report);
@@ -737,7 +748,7 @@
 
       if (action === 'install' && result && result.code === 0) {
         state.installCompleted = true;
-        appendOutput('Installation step completed. Run "Check requirements" again to confirm all dependencies are now ready.');
+        appendOutput('Installation step completed. Click "Re-run Step 1 Check" to confirm PostgreSQL Client (psql), npm/pnpm, Docker, and other requirements are ready.');
       }
 
       refreshWorkflow();
@@ -1128,6 +1139,13 @@
     setButtonVisible('install', showInstall);
     setButtonEnabled('install', showInstall);
 
+    const rerunCheckBtn = byId('rerun-check-btn');
+    if (rerunCheckBtn) {
+      const showRerun = state.checkCompleted && (state.dependencyIssues || state.installCompleted);
+      rerunCheckBtn.style.display = showRerun ? '' : 'none';
+      rerunCheckBtn.disabled = !showRerun;
+    }
+
     const applyBtn = byId('apply-port-decisions');
     if (applyBtn) applyBtn.disabled = !(state.checkCompleted && state.portIssues && !state.portResolved && allPortDecisionsComplete());
 
@@ -1286,15 +1304,26 @@
 
     const title = byId('next-step-title');
     const text = byId('next-step-text');
+    const rerun = byId('next-rerun-check-btn');
     const validate = byId('next-validate-repo-btn');
     const db = byId('next-bootstrap-database-btn');
     const config = byId('next-import-config-btn');
     const servers = byId('next-start-servers-btn');
     const login = byId('next-show-login-btn');
 
-    [validate, db, config, servers, login].forEach((btn) => {
+    [rerun, validate, db, config, servers, login].forEach((btn) => {
       if (btn) btn.style.display = 'none';
     });
+
+    if (state.dependencyIssues || state.installCompleted) {
+      panel.style.display = '';
+      if (title) title.textContent = translate('nextRerunCheckTitle');
+      if (text) text.textContent = state.installCompleted
+        ? translate('nextRerunAfterInstall')
+        : translate('nextRerunAfterWarning');
+      if (rerun) rerun.style.display = '';
+      return;
+    }
 
     if (state.cloneCompleted && !state.repoValidated) {
       panel.style.display = '';
@@ -1381,8 +1410,14 @@
       btn.addEventListener('click', () => runStandardAction(btn.dataset.action));
     });
 
+    const rerunCheckBtn = byId('rerun-check-btn');
+    if (rerunCheckBtn) rerunCheckBtn.addEventListener('click', () => runStandardAction('check'));
+
     const applyBtn = byId('apply-port-decisions');
     if (applyBtn) applyBtn.addEventListener('click', applyPortDecisions);
+
+    const nextRerunCheckBtn = byId('next-rerun-check-btn');
+    if (nextRerunCheckBtn) nextRerunCheckBtn.addEventListener('click', () => runStandardAction('check'));
 
     const locationSelect = byId('project-location');
     const folderName = byId('project-folder-name');

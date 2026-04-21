@@ -48,6 +48,13 @@ function Get-PsqlVersion {
         "C:\Program Files\PostgreSQL\13\bin\psql.exe"
     )
 
+    foreach ($root in @("C:\Program Files\PostgreSQL", "C:\Program Files (x86)\PostgreSQL")) {
+        if (Test-Path -LiteralPath $root) {
+            $candidatePaths += Get-ChildItem -LiteralPath $root -Recurse -Filter "psql.exe" -ErrorAction SilentlyContinue |
+                Select-Object -ExpandProperty FullName
+        }
+    }
+
     foreach ($path in $candidatePaths | Select-Object -Unique) {
         if (-not $path -or -not (Test-Path -LiteralPath $path)) { continue }
         try {

@@ -61,6 +61,14 @@ function Test-PsqlAvailable {
         "C:\Program Files\PostgreSQL\14\bin\psql.exe",
         "C:\Program Files\PostgreSQL\13\bin\psql.exe"
     )
+
+    foreach ($root in @("C:\Program Files\PostgreSQL", "C:\Program Files (x86)\PostgreSQL")) {
+        if (Test-Path -LiteralPath $root) {
+            $paths += Get-ChildItem -LiteralPath $root -Recurse -Filter "psql.exe" -ErrorAction SilentlyContinue |
+                Select-Object -ExpandProperty FullName
+        }
+    }
+
     return [bool]($paths | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1)
 }
 
