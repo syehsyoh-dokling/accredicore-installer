@@ -139,11 +139,47 @@
   }
 
   function hasDependencyIssues(report) {
-    const dependencyKeys = ['git', 'node', 'package_manager', 'docker', 'disk_space', 'internet', 'write_access'];
+    const dependencyKeys = ['git', 'node', 'package_manager', 'docker', 'postgres_client', 'disk_space', 'internet', 'write_access'];
     return dependencyKeys.some((key) => {
       const value = getSummaryStatus(report, key);
+      if (key === 'postgres_client') return value !== 'passed';
       return value === 'missing' || value === 'failed';
     });
+  }
+
+  function hasPostgresClient(report) {
+    return getSummaryStatus(report, 'postgres_client') === 'passed';
+  }
+
+  function validateDbInputs() {
+    const dbHost = String(byId('db-host')?.value || '').trim();
+    const dbPort = String(byId('db-port')?.value || '').trim();
+    const dbName = String(byId('db-name')?.value || '').trim();
+    const dbUser = String(byId('db-user')?.value || '').trim();
+    const dbPassword = String(byId('db-password')?.value || '');
+
+    if (!/^[A-Za-z0-9._-]{1,253}$/.test(dbHost) && dbHost !== 'localhost') {
+      return 'Database host must be 1-253 characters and contain only letters, numbers, dot, dash, underscore, or localhost.';
+    }
+
+    const portNumber = Number(dbPort);
+    if (!Number.isInteger(portNumber) || portNumber < 1 || portNumber > 65535) {
+      return 'Database port must be a number between 1 and 65535.';
+    }
+
+    if (!/^[a-z][a-z0-9_]{0,62}$/.test(dbName)) {
+      return 'Database name must start with a lowercase letter and use only lowercase letters, numbers, and underscore, max 63 characters.';
+    }
+
+    if (!/^[a-z][a-z0-9_]{0,62}$/.test(dbUser)) {
+      return 'Database user must start with a lowercase letter and use only lowercase letters, numbers, and underscore, max 63 characters.';
+    }
+
+    if (dbPassword.length > 256) {
+      return 'Database password must be 256 characters or fewer.';
+    }
+
+    return '';
   }
 
   function getBusyPorts(report) {
@@ -589,8 +625,19 @@
     const dbUser = String(byId('db-user')?.value || '').trim();
     const dbPassword = String(byId('db-password')?.value || '');
 
-    if (!targetDir || !dbHost || !dbPort || !dbName || !dbUser) {
-      appendOutput('ERROR: Database bootstrap requires target path, host, port, name, and user.');
+    if (!targetDir) {
+      appendOutput('ERROR: Target path is empty.');
+      return;
+    }
+
+    if (!hasPostgresClient(state.lastReport)) {
+      appendOutput('ERROR: PostgreSQL client/server is not ready. Run Step 2 "Install dependencies", then run Step 1 check again before Step 5.');
+      return;
+    }
+
+    const validationError = validateDbInputs();
+    if (validationError) {
+      appendOutput('ERROR: ' + validationError);
       return;
     }
 
@@ -773,7 +820,12 @@
     const locationReady = !!targetDir;
     if (cloneBtn) cloneBtn.disabled = !checksPassed || !locationReady;
     if (validateBtn) validateBtn.disabled = !checksPassed || !state.cloneCompleted;
-    if (dbBtn) dbBtn.disabled = !state.repoValidated;
+    const dbInputsValid = !validateDbInputs();
+    const postgresReady = hasPostgresClient(state.lastReport);
+    if (dbBtn) {
+      dbBtn.style.display = postgresReady ? '' : 'none';
+      dbBtn.disabled = !(state.repoValidated && postgresReady && dbInputsValid);
+    }
     if (importBtn) importBtn.disabled = !(state.dbBootstrapCompleted && state.envPath && state.activationPath);
 
     refreshNextStepPanel();
@@ -822,9 +874,13 @@
     }
 
     if (!state.dbBootstrapCompleted) {
-      setWorkflowStatus('Repository validation completed. Step 5 is active: create the database and import the AccrediCore structure.');
+      setWorkflowStatus(postgresReady
+        ? 'Repository validation completed. Step 5 is active: create the database and import the AccrediCore structure.'
+        : 'Repository validation completed, but PostgreSQL client/server is missing. Run Step 2 Install Dependencies and rerun Step 1 check before Step 5.');
       setGithubStepStatus('Step 4 completed successfully.');
-      if (dbStatus) dbStatus.textContent = 'Provide database connection values, then click "Create database and import structure".';
+      if (dbStatus) dbStatus.textContent = postgresReady
+        ? (dbInputsValid ? 'Provide database connection values, then click "Create database and import structure".' : validateDbInputs())
+        : 'PostgreSQL client/server is missing. Run Step 2 Install Dependencies, restart the installer if needed, then run Step 1 check again.';
       if (configStatus) configStatus.textContent = 'Step 6 is locked until database bootstrap completes.';
       return;
     }
@@ -872,8 +928,12 @@
     if (state.repoValidated && !state.dbBootstrapCompleted) {
       panel.style.display = '';
       if (title) title.textContent = 'Step 5 — Database Set-up';
-      if (text) text.textContent = 'Create the database, import the table structure from the cloned AccrediCore repository, and test the connection.';
-      if (db) db.style.display = '';
+      if (hasPostgresClient(state.lastReport)) {
+        if (text) text.textContent = 'Create the database, import the table structure from the cloned AccrediCore repository, and test the connection.';
+        if (db) db.style.display = '';
+      } else {
+        if (text) text.textContent = 'PostgreSQL client/server is missing. Run Step 2 Install Dependencies and rerun Step 1 Check Requirements before database setup.';
+      }
       return;
     }
 
@@ -960,6 +1020,11 @@
     if (nextImportConfigBtn) nextImportConfigBtn.addEventListener('click', () => {
       const wrap = byId('config-step-wrap');
       if (wrap) wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    ['db-host', 'db-port', 'db-name', 'db-user', 'db-password'].forEach((id) => {
+      const input = byId(id);
+      if (input) input.addEventListener('input', refreshWorkflow);
     });
 
     if (locationSelect && !locationSelect.value) locationSelect.value = 'documents';

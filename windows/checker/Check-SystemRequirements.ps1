@@ -36,6 +36,77 @@ function Get-CommandVersion {
     }
 }
 
+function Get-PsqlVersion {
+    $cmd = Get-Command psql -ErrorAction SilentlyContinue
+    $candidatePaths = @()
+    if ($cmd) { $candidatePaths += $cmd.Source }
+    $candidatePaths += @(
+        "C:\Program Files\PostgreSQL\17\bin\psql.exe",
+        "C:\Program Files\PostgreSQL\16\bin\psql.exe",
+        "C:\Program Files\PostgreSQL\15\bin\psql.exe",
+        "C:\Program Files\PostgreSQL\14\bin\psql.exe",
+        "C:\Program Files\PostgreSQL\13\bin\psql.exe"
+    )
+
+    foreach ($path in $candidatePaths | Select-Object -Unique) {
+        if (-not $path -or -not (Test-Path -LiteralPath $path)) { continue }
+        try {
+            $raw = & $path --version 2>$null | Select-Object -First 1
+            return [pscustomobject]@{
+                found = $true
+                version = if ($raw) { ($raw | Out-String).Trim() } else { "Detected" }
+                path = $path
+            }
+        } catch {
+            return [pscustomobject]@{
+                found = $true
+                version = "Detected"
+                path = $path
+            }
+        }
+    }
+
+    return [pscustomobject]@{
+        found = $false
+        version = $null
+        path = $null
+    }
+}
+
+function Get-DockerVersion {
+    $cmd = Get-Command docker -ErrorAction SilentlyContinue
+    $candidatePaths = @()
+    if ($cmd) { $candidatePaths += $cmd.Source }
+    $candidatePaths += @(
+        "C:\Program Files\Docker\Docker\resources\bin\docker.exe",
+        "C:\Program Files\Docker\Docker\docker.exe"
+    )
+
+    foreach ($path in $candidatePaths | Select-Object -Unique) {
+        if (-not $path -or -not (Test-Path -LiteralPath $path)) { continue }
+        try {
+            $raw = & $path --version 2>$null | Select-Object -First 1
+            return [pscustomobject]@{
+                found = $true
+                version = if ($raw) { ($raw | Out-String).Trim() } else { "Detected" }
+                path = $path
+            }
+        } catch {
+            return [pscustomobject]@{
+                found = $true
+                version = "Detected"
+                path = $path
+            }
+        }
+    }
+
+    return [pscustomobject]@{
+        found = $false
+        version = $null
+        path = $null
+    }
+}
+
 function Test-InternetQuick {
     $targets = @(
         @{ host = "github.com"; port = 443 },
@@ -99,8 +170,8 @@ $git = Get-CommandVersion -CommandName "git"
 $node = Get-CommandVersion -CommandName "node"
 $npm  = Get-CommandVersion -CommandName "npm"
 $pnpm = Get-CommandVersion -CommandName "pnpm"
-$docker = Get-CommandVersion -CommandName "docker"
-$psql = Get-CommandVersion -CommandName "psql"
+$docker = Get-DockerVersion
+$psql = Get-PsqlVersion
 
 $sysDrive = [System.IO.Path]::GetPathRoot($env:SystemDrive + "\")
 $drive = Get-CimInstance Win32_LogicalDisk -Filter ("DeviceID='" + $env:SystemDrive + "'")
@@ -128,7 +199,7 @@ $result = [pscustomobject]@{
         node = if ($node.found) { "Passed" } else { "Missing" }
         package_manager = if ($pkgFound) { if ($npm.found -and -not $pnpm.found) { "Warning" } else { "Passed" } } else { "Missing" }
         docker = if ($dockerFound) { "Passed" } else { "Missing" }
-        postgres_client = if ($postgresClientFound) { "Passed" } else { "Warning" }
+        postgres_client = if ($postgresClientFound) { "Passed" } else { "Missing" }
         disk_space = if ($freeGb -ge $MinimumDiskGb) { "Passed" } else { "Missing" }
         internet = if ($internetOk) { "Passed" } else { "Missing" }
         ports = if ($portAnyInUse) { "Warning" } else { "Passed" }
@@ -171,10 +242,10 @@ $result = [pscustomobject]@{
         }
         postgres_client = [pscustomobject]@{
             title = "PostgreSQL Client (psql)"
-            status = if ($postgresClientFound) { "Passed" } else { "Warning" }
+            status = if ($postgresClientFound) { "Passed" } else { "Missing" }
             version = $psql.version
             path = $psql.path
-            detail = if ($postgresClientFound) { "psql detected successfully." } else { "psql was not detected in the system path. You can continue to clone source code, but Step 5 database import will require PostgreSQL client access." }
+            detail = if ($postgresClientFound) { "psql detected successfully." } else { "psql was not detected in PATH. Step 5 is locked until PostgreSQL client/server is installed and available." }
         }
         disk_space = [pscustomobject]@{
             title = "Available Disk Space"

@@ -10,6 +10,49 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+function Assert-DbInput {
+  if ([string]::IsNullOrWhiteSpace($DbHost) -or (($DbHost -ne "localhost") -and ($DbHost -notmatch '^[A-Za-z0-9._-]{1,253}$'))) {
+    throw "Invalid database host. Use localhost, IP address, or hostname with letters, numbers, dot, dash, underscore only."
+  }
+
+  if ($DbPort -lt 1 -or $DbPort -gt 65535) {
+    throw "Invalid database port. Use a number between 1 and 65535."
+  }
+
+  if ($DbName -notmatch '^[a-z][a-z0-9_]{0,62}$') {
+    throw "Invalid database name. Use lowercase letters, numbers, and underscore only; start with a letter; max 63 characters."
+  }
+
+  if ($DbUser -notmatch '^[a-z][a-z0-9_]{0,62}$') {
+    throw "Invalid database user. Use lowercase letters, numbers, and underscore only; start with a letter; max 63 characters."
+  }
+
+  if ($DbPassword.Length -gt 256) {
+    throw "Invalid database password. Max length is 256 characters."
+  }
+}
+
+function Resolve-PsqlPath {
+  $cmd = Get-Command psql -ErrorAction SilentlyContinue
+  $candidatePaths = @()
+  if ($cmd) { $candidatePaths += $cmd.Source }
+  $candidatePaths += @(
+    "C:\Program Files\PostgreSQL\17\bin\psql.exe",
+    "C:\Program Files\PostgreSQL\16\bin\psql.exe",
+    "C:\Program Files\PostgreSQL\15\bin\psql.exe",
+    "C:\Program Files\PostgreSQL\14\bin\psql.exe",
+    "C:\Program Files\PostgreSQL\13\bin\psql.exe"
+  )
+
+  foreach ($path in $candidatePaths | Select-Object -Unique) {
+    if ($path -and (Test-Path -LiteralPath $path)) {
+      return $path
+    }
+  }
+
+  return $null
+}
+
 function Resolve-SchemaPath {
   param(
     [string]$BaseProjectRoot,
@@ -71,9 +114,11 @@ if (-not (Test-Path -LiteralPath $ProjectRoot)) {
   throw "ProjectRoot does not exist: $ProjectRoot"
 }
 
-$psqlCommand = Get-Command psql -ErrorAction SilentlyContinue
+Assert-DbInput
+
+$psqlCommand = Resolve-PsqlPath
 if (-not $psqlCommand) {
-  throw "psql was not found in PATH. Install PostgreSQL client/server first."
+  throw "psql was not found in PATH. Run Step 2 Install Dependencies, then run Step 1 Check Requirements again before Step 5."
 }
 
 $schemaFile = Resolve-SchemaPath -BaseProjectRoot $ProjectRoot -ExplicitPath $SchemaPath
@@ -85,14 +130,14 @@ try {
   Write-Host "- Database target: ${DbHost}:${DbPort} / $DbName"
   Write-Host "- Schema file: $schemaFile"
 
-  $existsOutput = & psql -h $DbHost -p $DbPort -U $DbUser -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname = '$DbName';" 2>&1
+  $existsOutput = & $psqlCommand -h $DbHost -p $DbPort -U $DbUser -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname = '$DbName';" 2>&1
   if ($LASTEXITCODE -ne 0) {
     throw "Could not query PostgreSQL server. Details: $existsOutput"
   }
 
   $dbExists = ($existsOutput | Out-String).Trim() -eq "1"
   if (-not $dbExists) {
-    $createOutput = & psql -h $DbHost -p $DbPort -U $DbUser -d postgres -v ON_ERROR_STOP=1 -c "CREATE DATABASE ""$DbName"";" 2>&1
+    $createOutput = & $psqlCommand -h $DbHost -p $DbPort -U $DbUser -d postgres -v ON_ERROR_STOP=1 -c "CREATE DATABASE ""$DbName"";" 2>&1
     if ($LASTEXITCODE -ne 0) {
       throw "Could not create database '$DbName'. Details: $createOutput"
     }
@@ -101,7 +146,7 @@ try {
     Write-Host "- Database already exists. Re-importing structure into the existing database."
   }
 
-  $importOutput = & psql -h $DbHost -p $DbPort -U $DbUser -d $DbName -v ON_ERROR_STOP=1 -f $schemaFile 2>&1
+  $importOutput = & $psqlCommand -h $DbHost -p $DbPort -U $DbUser -d $DbName -v ON_ERROR_STOP=1 -f $schemaFile 2>&1
   if ($LASTEXITCODE -ne 0) {
     throw "Schema import failed. Details: $importOutput"
   }
@@ -110,7 +155,7 @@ try {
   Write-Host "- Running smoke test: database connection and table visibility."
 
   $smokeSql = "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public';"
-  $smokeOutput = & psql -h $DbHost -p $DbPort -U $DbUser -d $DbName -tAc $smokeSql 2>&1
+  $smokeOutput = & $psqlCommand -h $DbHost -p $DbPort -U $DbUser -d $DbName -tAc $smokeSql 2>&1
   if ($LASTEXITCODE -ne 0) {
     throw "Database smoke test failed. Details: $smokeOutput"
   }

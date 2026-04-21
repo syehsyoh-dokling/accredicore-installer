@@ -108,23 +108,23 @@
         <div class="kv-grid">
           <div>
             <div class="label">Database host</div>
-            <input class="input" id="db-host" value="127.0.0.1" />
+            <input class="input" id="db-host" value="127.0.0.1" maxlength="253" pattern="[A-Za-z0-9._-]{1,253}" autocomplete="off" />
           </div>
           <div>
             <div class="label">Database port</div>
-            <input class="input" id="db-port" value="5432" />
+            <input class="input" id="db-port" value="5432" type="number" inputmode="numeric" min="1" max="65535" step="1" />
           </div>
           <div>
             <div class="label">Database name</div>
-            <input class="input" id="db-name" value="accredicore" />
+            <input class="input" id="db-name" value="accredicore" maxlength="63" pattern="[a-z][a-z0-9_]{0,62}" autocomplete="off" />
           </div>
           <div>
             <div class="label">Database user</div>
-            <input class="input" id="db-user" value="postgres" />
+            <input class="input" id="db-user" value="postgres" maxlength="63" pattern="[a-z][a-z0-9_]{0,62}" autocomplete="username" />
           </div>
           <div style="grid-column: 1 / -1;">
             <div class="label">Database password</div>
-            <input class="input" id="db-password" type="password" value="" />
+            <input class="input" id="db-password" type="password" value="" maxlength="256" autocomplete="current-password" />
           </div>
         </div>
 
