@@ -23,7 +23,15 @@ function createWindow() {
     }
   });
 
-  win.loadFile(path.join(__dirname, '..', 'index.html'));
+  const platformKey = getPlatformKey();
+  const platformGui = {
+    windows: path.join(__dirname, '..', 'windows', 'gui', 'index.html'),
+    linux: path.join(__dirname, '..', 'linux', 'gui', 'index.html'),
+    macos: path.join(__dirname, '..', 'macos', 'gui', 'index.html')
+  };
+
+  const installerEntry = platformGui[platformKey] || path.join(__dirname, '..', 'index.html');
+  win.loadFile(installerEntry);
 }
 
 function scriptForAction(platformKey, action) {
