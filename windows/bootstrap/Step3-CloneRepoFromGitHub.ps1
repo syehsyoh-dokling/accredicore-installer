@@ -20,11 +20,11 @@ function Resolve-TargetDir {
   $userHomePath  = [System.Environment]::GetFolderPath("UserProfile")
 
   if ($p -ieq "Desktop") {
-    return Join-Path $desktopPath "AccrediCore"
+    return Join-Path $desktopPath "Arab Compliance Hub"
   }
 
   if ($p -ieq "Documents") {
-    return Join-Path $documentsPath "AccrediCore"
+    return Join-Path $documentsPath "Arab Compliance Hub"
   }
 
   if ($p -like 'User\*' -or $p -like 'Users\*') {
@@ -43,7 +43,7 @@ function Resolve-TargetDir {
   }
 
   if ($p -match '^[A-Za-z]:\\$') {
-    return Join-Path $p "AccrediCore"
+    return Join-Path $p "Arab Compliance Hub"
   }
 
   if ($p -notmatch '^[A-Za-z]:\\') {

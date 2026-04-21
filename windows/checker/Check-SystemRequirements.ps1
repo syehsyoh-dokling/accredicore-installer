@@ -1,5 +1,5 @@
 ﻿param(
-    [string]$WorkingDirectory = "C:\AccrediCore",
+    [string]$WorkingDirectory = "C:\Arab Compliance Hub",
     [string[]]$PortsToCheck = @("3005","4173","5432","54321","54323"),
     [double]$MinimumDiskGb = 10,
     [string]$OutFile = ""

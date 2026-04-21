@@ -1,6 +1,6 @@
 param(
     [string]$RepoPath = "",
-    [string]$WorkingDirectory = "C:\AccrediCore"
+    [string]$WorkingDirectory = "C:\Arab Compliance Hub"
 )
 
 if ([string]::IsNullOrWhiteSpace($RepoPath)) {

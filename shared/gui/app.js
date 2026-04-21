@@ -94,6 +94,8 @@
       step8Locked: 'Step 8 is locked until the servers are launched.',
       outputTitle: 'Output',
       nextStepKicker: 'Next step',
+      nextInstallTitle: 'Step 2 — Install Dependencies',
+      nextInstallText: 'Required dependencies are missing. Click Step 2 now; the installer will install or repair missing items, then you will re-run Step 1.',
       nextRerunCheckTitle: 'Step 1 — Re-check Requirements',
       nextRerunAfterInstall: 'Dependency installation finished. Re-run Step 1 so the installer can unlock the next step only after PostgreSQL Client (psql), npm/pnpm, Docker, and other required checks pass.',
       nextRerunAfterWarning: 'Missing dependencies were detected. Run Step 2 Install Dependencies first, then re-run Step 1 Check Requirements.',
@@ -175,6 +177,8 @@
       step8Locked: 'الخطوة 8 مقفلة حتى يتم تشغيل الخوادم.',
       outputTitle: 'المخرجات',
       nextStepKicker: 'الخطوة التالية',
+      nextInstallTitle: 'الخطوة 2 — تثبيت المتطلبات',
+      nextInstallText: 'هناك متطلبات ناقصة. اضغط الخطوة 2 الآن؛ سيقوم المثبت بتثبيت أو إصلاح العناصر الناقصة، ثم أعد فحص الخطوة 1.',
       nextRerunCheckTitle: 'الخطوة 1 — إعادة فحص المتطلبات',
       nextRerunAfterInstall: 'انتهى تثبيت المتطلبات. أعد فحص الخطوة 1 حتى يفتح المثبت الخطوة التالية فقط بعد نجاح PostgreSQL Client (psql) و npm/pnpm و Docker وبقية الفحوصات المطلوبة.',
       nextRerunAfterWarning: 'تم اكتشاف متطلبات ناقصة. شغل الخطوة 2 لتثبيت المتطلبات أولا، ثم أعد فحص الخطوة 1.',
@@ -420,7 +424,7 @@
   function getSelectedBasePath() {
     const preset = byId('project-location')?.value || 'documents';
     const custom = (byId('custom-base-path')?.value || '').trim();
-    const folderName = (byId('project-folder-name')?.value || 'AccrediCore').trim();
+    const folderName = (byId('project-folder-name')?.value || 'Arab Compliance Hub').trim();
     const info = state.homeInfo || {};
 
     let base = '';
@@ -601,12 +605,12 @@
     lines.push('');
     lines.push('Instruction:');
     if (hasDependencyIssues(report)) {
-      lines.push('1. Run "Install dependencies".');
+      lines.push('1. Click "Step 2. Install dependencies".');
       lines.push('2. Click "Re-run Step 1 Check" after dependency installation finishes.');
       lines.push('3. Continue only when all required dependencies pass.');
       lines.push('4. If PostgreSQL was just installed, restart this installer once, then click "Re-run Step 1 Check".');
     } else {
-      lines.push('1. Step 4 is now active: clone the AccrediCore repository.');
+      lines.push('1. Step 4 is now active: clone the Arab Compliance Hub source repository.');
       lines.push('2. Choose the project location.');
       lines.push('3. Click "Clone repository from GitHub".');
       lines.push('4. Validate the repository content.');
@@ -1141,9 +1145,15 @@
 
     const rerunCheckBtn = byId('rerun-check-btn');
     if (rerunCheckBtn) {
-      const showRerun = state.checkCompleted && (state.dependencyIssues || state.installCompleted);
+      const showRerun = state.checkCompleted && state.installCompleted;
       rerunCheckBtn.style.display = showRerun ? '' : 'none';
       rerunCheckBtn.disabled = !showRerun;
+    }
+
+    const installBtn = getActionButton('install');
+    if (installBtn) {
+      installBtn.classList.toggle('primary', showInstall);
+      installBtn.classList.toggle('secondary', !showInstall);
     }
 
     const applyBtn = byId('apply-port-decisions');
@@ -1213,7 +1223,7 @@
     }
 
     if (state.dependencyIssues) {
-      setWorkflowStatus('Missing or failed dependencies detected. Clone/download is locked. Run "Install dependencies", then rerun Step 1 Check Requirements before continuing.');
+      setWorkflowStatus('Missing dependencies detected. Click "Step 2. Install dependencies" now. After it finishes, click "Re-run Step 1 Check".');
       setGithubStepStatus('Step 4 is locked until all required dependencies pass.');
       if (dbStatus) dbStatus.textContent = 'Step 5 is locked until repository validation completes.';
       if (configStatus) configStatus.textContent = 'Step 6 is locked until database bootstrap completes.';
@@ -1304,6 +1314,7 @@
 
     const title = byId('next-step-title');
     const text = byId('next-step-text');
+    const install = byId('next-install-dependencies-btn');
     const rerun = byId('next-rerun-check-btn');
     const validate = byId('next-validate-repo-btn');
     const db = byId('next-bootstrap-database-btn');
@@ -1311,11 +1322,19 @@
     const servers = byId('next-start-servers-btn');
     const login = byId('next-show-login-btn');
 
-    [rerun, validate, db, config, servers, login].forEach((btn) => {
+    [install, rerun, validate, db, config, servers, login].forEach((btn) => {
       if (btn) btn.style.display = 'none';
     });
 
-    if (state.dependencyIssues || state.installCompleted) {
+    if (state.dependencyIssues && !state.installCompleted) {
+      panel.style.display = '';
+      if (title) title.textContent = translate('nextInstallTitle');
+      if (text) text.textContent = translate('nextInstallText');
+      if (install) install.style.display = '';
+      return;
+    }
+
+    if (state.installCompleted) {
       panel.style.display = '';
       if (title) title.textContent = translate('nextRerunCheckTitle');
       if (text) text.textContent = state.installCompleted
@@ -1415,6 +1434,9 @@
 
     const applyBtn = byId('apply-port-decisions');
     if (applyBtn) applyBtn.addEventListener('click', applyPortDecisions);
+
+    const nextInstallBtn = byId('next-install-dependencies-btn');
+    if (nextInstallBtn) nextInstallBtn.addEventListener('click', () => runStandardAction('install'));
 
     const nextRerunCheckBtn = byId('next-rerun-check-btn');
     if (nextRerunCheckBtn) nextRerunCheckBtn.addEventListener('click', () => runStandardAction('check'));
