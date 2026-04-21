@@ -108,6 +108,8 @@ function addDynamicArgs(platformKey, action, args, payload) {
       if (payload.dbName) next.push('-DbName', payload.dbName);
       if (payload.dbUser) next.push('-DbUser', payload.dbUser);
       if (payload.dbPassword !== undefined) next.push('-DbPassword', payload.dbPassword);
+      if (payload.frontendPort) next.push('-FrontendPort', String(payload.frontendPort));
+      if (payload.localApiPort) next.push('-LocalApiPort', String(payload.localApiPort));
     }
     if (action === 'stop-process' && payload.pid) {
       next.push('-Pid', payload.pid);

@@ -57,10 +57,10 @@
       </section>
 
       <section class="card stack-gap" id="port-resolution-wrap" style="grid-column: 1 / -1; display:none;">
-        <h2 data-i18n="step3Title">Step 3 — Port Resolution</h2>
-        <p class="lead" data-i18n="step3Lead">Review each conflicting port and choose how AccrediCore should handle it.</p>
+        <h2 id="port-resolution-title" data-i18n="automaticPortHandling">Automatic port handling</h2>
+        <p class="lead" id="port-resolution-lead" data-i18n="automaticPortLead">The installer detects busy ports and applies a safe recommendation automatically. No manual port choice is needed.</p>
         <div id="port-resolution-body"></div>
-        <div class="button-row wrap">
+        <div class="button-row wrap" style="display:none;">
           <button class="btn primary" id="apply-port-decisions" disabled data-i18n="applyPortDecisions">Apply port decisions</button>
         </div>
       </section>

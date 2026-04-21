@@ -9,6 +9,11 @@
     dependencyIssues: false,
     portIssues: false,
     portResolved: false,
+    portPlan: {
+      frontend: 4173,
+      localApi: 3005,
+      db: 5432
+    },
 
     installCompleted: false,
     cloneCompleted: false,
@@ -46,6 +51,8 @@
       step3Title: 'Step 3 — Port Resolution',
       step3Lead: 'Review each conflicting port and choose how AccrediCore should handle it.',
       applyPortDecisions: 'Apply port decisions',
+      automaticPortHandling: 'Automatic port handling',
+      automaticPortLead: 'The installer detects busy ports and applies a safe recommendation automatically. No manual port choice is needed.',
       step4Title: 'Step 4 — Clone AccrediCore Source',
       step4Lead: 'Choose where the final source code should be stored, then clone the `accredicore-main` repository. The installer will create the target folder automatically if needed.',
       recommendedProjectLocation: 'Recommended project location',
@@ -129,6 +136,8 @@
       step3Title: 'الخطوة 3 — معالجة المنافذ',
       step3Lead: 'راجع المنافذ المتعارضة واختر كيف يتعامل معها النظام.',
       applyPortDecisions: 'تطبيق قرارات المنافذ',
+      automaticPortHandling: 'معالجة المنافذ تلقائيا',
+      automaticPortLead: 'يقوم المثبت بفحص المنافذ المستخدمة وتطبيق توصية آمنة تلقائيا. لا يحتاج المستخدم إلى اختيار منفذ يدويا.',
       step4Title: 'الخطوة 4 — تنزيل مصدر AccrediCore',
       step4Lead: 'اختر مكان حفظ المصدر النهائي، ثم قم بتنزيل مستودع accredicore-main. سيقوم المثبت بإنشاء المجلد تلقائيا عند الحاجة.',
       recommendedProjectLocation: 'موقع المشروع المقترح',
@@ -388,11 +397,91 @@
     return false;
   }
 
+  function nextAvailablePort(basePort, busyPorts) {
+    const busySet = new Set((busyPorts || []).map((p) => Number(p.port)).filter(Boolean));
+    let candidate = Number(basePort) + 1;
+    while (busySet.has(candidate) && candidate < 65535) candidate += 1;
+    return candidate <= 65535 ? candidate : Number(basePort);
+  }
+
+  function buildPortPlan(report) {
+    const busyPorts = getBusyPorts(report);
+    const plan = {
+      frontend: 4173,
+      localApi: 3005,
+      db: 5432,
+      recommendations: []
+    };
+
+    busyPorts.forEach((port) => {
+      const portNumber = Number(port && port.port);
+      const processName = String((port && port.process_name) || '').toLowerCase();
+
+      if (portNumber === 5432 && processName.includes('postgres')) {
+        plan.db = 5432;
+        plan.recommendations.push({
+          port: 5432,
+          label: 'PostgreSQL database',
+          action: 'Reuse existing PostgreSQL service automatically',
+          recommended: 5432
+        });
+        return;
+      }
+
+      if (portNumber === 4173) {
+        plan.frontend = nextAvailablePort(4173, busyPorts);
+        plan.recommendations.push({
+          port: 4173,
+          label: 'Frontend login page',
+          action: `Use ${plan.frontend} automatically for the frontend`,
+          recommended: plan.frontend
+        });
+        return;
+      }
+
+      if (portNumber === 3005) {
+        plan.localApi = nextAvailablePort(3005, busyPorts);
+        plan.recommendations.push({
+          port: 3005,
+          label: 'Local API',
+          action: `Use ${plan.localApi} automatically for the local API`,
+          recommended: plan.localApi
+        });
+        return;
+      }
+
+      if (portNumber === 54321 || portNumber === 54323) {
+        plan.recommendations.push({
+          port: portNumber,
+          label: portNumber === 54321 ? 'Supabase API' : 'Supabase Studio',
+          action: 'Reuse the existing local Supabase service if it belongs to this stack',
+          recommended: portNumber
+        });
+        return;
+      }
+
+      plan.recommendations.push({
+        port: portNumber || 'unknown',
+        label: 'Application service',
+        action: 'Avoid this busy port automatically',
+        recommended: 'auto'
+      });
+    });
+
+    return plan;
+  }
+
   function describeAutoPortHandling(port) {
     const portNumber = Number(port && port.port);
     const processName = String((port && port.process_name) || '').toLowerCase();
     if (portNumber === 5432 && processName.includes('postgres')) {
       return 'PostgreSQL is already running on port 5432, so the installer will reuse it automatically.';
+    }
+
+    if (portNumber === 4173 || portNumber === 3005) {
+      const plan = state.portPlan || buildPortPlan(state.lastReport);
+      const recommended = portNumber === 4173 ? plan.frontend : plan.localApi;
+      return `Port ${portNumber} is already in use, so the installer recommends and applies port ${recommended} automatically.`;
     }
 
     return `Port ${port && port.port ? port.port : 'unknown'} is already in use, so the installer will avoid it automatically and continue with a safe internal setting.`;
@@ -537,8 +626,34 @@
     const body = byId('port-resolution-body');
     if (!wrap || !body) return;
 
+    const plan = buildPortPlan(report);
+    state.portPlan = plan;
+    const recommendations = plan.recommendations || [];
     body.innerHTML = '';
-    wrap.style.display = 'none';
+    if (!recommendations.length) {
+      wrap.style.display = 'none';
+      return;
+    }
+
+    wrap.style.display = '';
+    const heading = byId('port-resolution-title');
+    const lead = byId('port-resolution-lead');
+    if (heading) heading.textContent = translate('automaticPortHandling');
+    if (lead) lead.textContent = translate('automaticPortLead');
+
+    recommendations.forEach((item) => {
+      const card = document.createElement('div');
+      card.className = 'next-step-panel';
+      card.innerHTML = `
+        <div>
+          <p class="eyebrow">Port ${item.port}</p>
+          <h3>${item.label}</h3>
+          <p class="lead">${item.action}</p>
+        </div>
+        <div class="status-pill">Recommended: ${item.recommended}</div>
+      `;
+      body.appendChild(card);
+    });
   }
 
   function allPortDecisionsComplete() {
@@ -734,7 +849,9 @@
         workingDirectory: byId('working-directory')?.value || '',
         sourceZip: byId('source-zip')?.value || '',
         remoteUrl: byId('remote-url')?.value || '',
-        targetDir: getSelectedBasePath()
+        targetDir: getSelectedBasePath(),
+        frontendPort: state.portPlan && state.portPlan.frontend ? state.portPlan.frontend : 4173,
+        localApiPort: state.portPlan && state.portPlan.localApi ? state.portPlan.localApi : 3005
       };
 
       const result = await window.accredicore.runAction(payload);
@@ -931,7 +1048,9 @@
       dbPort: String(byId('db-port')?.value || '').trim(),
       dbName: String(byId('db-name')?.value || '').trim(),
       dbUser: String(byId('db-user')?.value || '').trim(),
-      dbPassword: String(byId('db-password')?.value || '')
+      dbPassword: String(byId('db-password')?.value || ''),
+      frontendPort: state.portPlan && state.portPlan.frontend ? state.portPlan.frontend : 4173,
+      localApiPort: state.portPlan && state.portPlan.localApi ? state.portPlan.localApi : 3005
     });
     appendOutput(result.output || JSON.stringify(result, null, 2));
 
@@ -944,7 +1063,8 @@
   }
 
   async function openLoginUrl() {
-    const url = 'http://127.0.0.1:4173/auth';
+    const frontendPort = state.portPlan && state.portPlan.frontend ? state.portPlan.frontend : 4173;
+    const url = `http://127.0.0.1:${frontendPort}/auth`;
     if (window.accredicore && typeof window.accredicore.openExternal === 'function') {
       await window.accredicore.openExternal(url);
       return;
@@ -964,7 +1084,8 @@
     if (openBtn) openBtn.style.display = '';
     state.loginShown = true;
     appendOutput('STEP 8 RESULT');
-    appendOutput('- Login URL: http://127.0.0.1:4173/auth');
+    const frontendPort = state.portPlan && state.portPlan.frontend ? state.portPlan.frontend : 4173;
+    appendOutput(`- Login URL: http://127.0.0.1:${frontendPort}/auth`);
     appendOutput('- Root username: local-admin@accredicore.local');
     appendOutput('- Root password: LocalAdmin123!');
     appendOutput('- Additional manual test users: quality-manager@accredicore.local, dept-manager@accredicore.local, team-leader@accredicore.local, staff-user@accredicore.local');
@@ -1160,7 +1281,7 @@
     if (applyBtn) applyBtn.disabled = !(state.checkCompleted && state.portIssues && !state.portResolved && allPortDecisionsComplete());
 
     const portWrap = byId('port-resolution-wrap');
-    if (portWrap) portWrap.style.display = (state.checkCompleted && state.portIssues && !state.portResolved) ? '' : 'none';
+    if (portWrap && (!state.checkCompleted || !getBusyPorts(state.lastReport).length)) portWrap.style.display = 'none';
 
     const githubWrap = byId('github-step-wrap');
     if (githubWrap) githubWrap.style.display = checksPassed ? '' : 'none';

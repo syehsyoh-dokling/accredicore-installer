@@ -4,7 +4,9 @@ param(
   [string]$DbPort = "5432",
   [string]$DbName = "accredicore",
   [string]$DbUser = "postgres",
-  [string]$DbPassword = ""
+  [string]$DbPassword = "",
+  [int]$FrontendPort = 4173,
+  [int]$LocalApiPort = 3005
 )
 
 $ErrorActionPreference = "Stop"
@@ -86,7 +88,7 @@ Write-Host "- Frontend runtime env prepared: $frontendEnv"
 
 $apiEnv = Join-Path $localApi ".env"
 $apiEnvContent = @"
-PORT=3001
+PORT=$LocalApiPort
 DB_HOST=$DbHost
 DB_PORT=$DbPort
 DB_USER=$DbUser
@@ -110,14 +112,14 @@ try {
 Write-Host "- Opening backend and frontend service windows."
 Start-NamedPowerShell -Title "AccrediCore Supabase Edge Functions" -WorkingDirectory $appSource -Command "npx supabase functions serve"
 Start-NamedPowerShell -Title "AccrediCore Local API" -WorkingDirectory $localApi -Command "npm start"
-Start-NamedPowerShell -Title "AccrediCore Frontend" -WorkingDirectory $appSource -Command "npm run dev -- --host 127.0.0.1 --port 4173"
+Start-NamedPowerShell -Title "AccrediCore Frontend" -WorkingDirectory $appSource -Command "npm run dev -- --host 127.0.0.1 --port $FrontendPort"
 
 Write-Host ""
 Write-Host "STEP 7 RESULT"
 Write-Host "- Backend and frontend startup commands were launched."
-Write-Host "- Frontend URL: http://127.0.0.1:4173"
-Write-Host "- Login URL: http://127.0.0.1:4173/auth"
-Write-Host "- Local API health: http://localhost:3001/api/health"
+Write-Host "- Frontend URL: http://127.0.0.1:$FrontendPort"
+Write-Host "- Login URL: http://127.0.0.1:$FrontendPort/auth"
+Write-Host "- Local API health: http://localhost:$LocalApiPort/api/health"
 Write-Host "- Supabase API: http://127.0.0.1:54321"
 Write-Host "- Supabase Studio: http://127.0.0.1:54323"
 Write-Host ""
