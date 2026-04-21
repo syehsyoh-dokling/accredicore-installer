@@ -48,7 +48,12 @@ function Get-PsqlVersion {
         "C:\Program Files\PostgreSQL\13\bin\psql.exe"
     )
 
-    foreach ($root in @("C:\Program Files\PostgreSQL", "C:\Program Files (x86)\PostgreSQL")) {
+    foreach ($root in @(
+        "C:\Program Files\PostgreSQL",
+        "C:\Program Files (x86)\PostgreSQL",
+        "$env:LOCALAPPDATA\Programs\PostgreSQL",
+        "$env:APPDATA\PostgreSQL"
+    )) {
         if (Test-Path -LiteralPath $root) {
             $candidatePaths += Get-ChildItem -LiteralPath $root -Recurse -Filter "psql.exe" -ErrorAction SilentlyContinue |
                 Select-Object -ExpandProperty FullName
@@ -252,7 +257,7 @@ $result = [pscustomobject]@{
             status = if ($postgresClientFound) { "Passed" } else { "Missing" }
             version = $psql.version
             path = $psql.path
-            detail = if ($postgresClientFound) { "psql detected successfully." } else { "psql was not detected in PATH. Step 5 is locked until PostgreSQL client/server is installed and available." }
+            detail = if ($postgresClientFound) { "psql detected successfully." } else { "psql was not detected in PATH, Program Files, Program Files (x86), or common user install locations. Step 5 is locked until PostgreSQL client/server is installed and available." }
         }
         disk_space = [pscustomobject]@{
             title = "Available Disk Space"

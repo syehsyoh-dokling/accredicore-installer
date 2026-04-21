@@ -48,7 +48,12 @@ function Resolve-PsqlPath {
     "C:\Program Files\PostgreSQL\13\bin\psql.exe"
   )
 
-  foreach ($root in @("C:\Program Files\PostgreSQL", "C:\Program Files (x86)\PostgreSQL")) {
+  foreach ($root in @(
+    "C:\Program Files\PostgreSQL",
+    "C:\Program Files (x86)\PostgreSQL",
+    "$env:LOCALAPPDATA\Programs\PostgreSQL",
+    "$env:APPDATA\PostgreSQL"
+  )) {
     if (Test-Path -LiteralPath $root) {
       $candidatePaths += Get-ChildItem -LiteralPath $root -Recurse -Filter "psql.exe" -ErrorAction SilentlyContinue |
         Select-Object -ExpandProperty FullName
@@ -167,7 +172,7 @@ Assert-DbInput
 
 $psqlCommand = Resolve-PsqlPath
 if (-not $psqlCommand) {
-  throw "psql was not found in PATH. Run Step 2 Install Dependencies, then run Step 1 Check Requirements again before Step 5."
+  throw "PostgreSQL Client (psql) was not found on this device. The installer searched PATH, Program Files, Program Files (x86), and common user install locations. Run Step 2 Install Dependencies, restart the installer if needed, then run Step 1 Check Requirements again before Step 5."
 }
 
 $schemaFile = Resolve-SchemaPath -BaseProjectRoot $ProjectRoot -ExplicitPath $SchemaPath

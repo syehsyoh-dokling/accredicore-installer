@@ -19,6 +19,7 @@
     cloneCompleted: false,
     repoValidated: false,
     dbBootstrapCompleted: false,
+    dbBootstrapFailed: false,
     configImported: false,
     serverStarted: false,
     loginShown: false,
@@ -108,6 +109,8 @@
       nextRerunAfterWarning: 'Missing dependencies were detected. Run Step 2 Install Dependencies first, then re-run Step 1 Check Requirements.',
       nextValidateRepo: 'Validate source code first',
       nextBootstrapDatabase: 'Step 5A/5B. Database Set-up',
+      nextFixDatabaseTitle: 'Step 5A/5B — Fix Database Set-up',
+      nextFixDatabaseText: 'Step 5 did not complete. Step 6 is locked. Fix PostgreSQL Client (psql) or the database password, run Step 1 Check Requirements again, then retry Step 5A/5B.',
       nextImportConfig: 'Step 6. Import configuration',
       nextStartServers: 'Step 7. Start servers',
       nextShowLogin: 'Step 8. Show login access',
@@ -193,6 +196,8 @@
       nextRerunAfterWarning: 'تم اكتشاف متطلبات ناقصة. شغل الخطوة 2 لتثبيت المتطلبات أولا، ثم أعد فحص الخطوة 1.',
       nextValidateRepo: 'تحقق من المصدر أولا',
       nextBootstrapDatabase: 'الخطوة 5A/5B. إعداد قاعدة البيانات',
+      nextFixDatabaseTitle: 'الخطوة 5A/5B — إصلاح إعداد قاعدة البيانات',
+      nextFixDatabaseText: 'لم تكتمل الخطوة 5. ستبقى الخطوة 6 مقفلة. أصلح PostgreSQL Client (psql) أو كلمة مرور قاعدة البيانات، ثم أعد فحص الخطوة 1 وجرب الخطوة 5A/5B مرة أخرى.',
       nextImportConfig: 'الخطوة 6. استيراد الإعدادات',
       nextStartServers: 'الخطوة 7. تشغيل الخوادم',
       nextShowLogin: 'الخطوة 8. عرض بيانات الدخول',
@@ -747,6 +752,7 @@
       state.cloneCompleted = false;
       state.repoValidated = false;
       state.dbBootstrapCompleted = false;
+      state.dbBootstrapFailed = false;
       state.configImported = false;
       state.serverStarted = false;
       state.loginShown = false;
@@ -913,6 +919,7 @@
       state.cloneCompleted = true;
       state.repoValidated = false;
       state.dbBootstrapCompleted = false;
+      state.dbBootstrapFailed = false;
       state.configImported = false;
       state.serverStarted = false;
       state.loginShown = false;
@@ -935,6 +942,11 @@
 
     if (result.code === 0) {
       state.repoValidated = true;
+      state.dbBootstrapCompleted = false;
+      state.dbBootstrapFailed = false;
+      state.configImported = false;
+      state.serverStarted = false;
+      state.loginShown = false;
       appendOutput('Repository validation completed. The project is ready for database bootstrap.');
     }
 
@@ -965,6 +977,12 @@
       return;
     }
 
+    state.dbBootstrapCompleted = false;
+    state.dbBootstrapFailed = false;
+    state.configImported = false;
+    state.serverStarted = false;
+    state.loginShown = false;
+
     appendOutput('>>> Step 5A/5B: Create database, import AccrediCore structure, and test connection');
     const result = await window.accredicore.runAction({
       action: 'bootstrap-database',
@@ -979,7 +997,13 @@
 
     if (result.code === 0) {
       state.dbBootstrapCompleted = true;
+      state.dbBootstrapFailed = false;
       appendOutput('Step 5A/5B completed successfully: database import and smoke test passed. Step 6 is now unlocked.');
+    } else {
+      state.dbBootstrapCompleted = false;
+      state.dbBootstrapFailed = true;
+      appendOutput('Step 5A/5B did not complete. Step 6 remains locked.');
+      appendOutput('Instruction: run Step 2 Install Dependencies if PostgreSQL Client (psql) is missing, restart the installer if needed, run Step 1 Check Requirements again, then retry Step 5A/5B.');
     }
 
     refreshWorkflow();
@@ -1220,6 +1244,8 @@
       state.activationRequest = null;
       title.textContent = 'Online activation';
       text.textContent = 'The installer will send the registration email and installation code to https://accredicore.danandad.com/. If the email is registered, the portal returns a unique signed .env and activation.json for this installation and saves them locally.';
+      if (openBtn) openBtn.style.display = 'none';
+      if (copyBtn) copyBtn.style.display = 'none';
       if (downloadBtn) downloadBtn.style.display = 'none';
       await requestOnlineActivation();
       return;
@@ -1228,7 +1254,7 @@
     state.activationRequest = buildOfflineActivationRequest();
     title.textContent = 'Offline activation code';
     text.textContent = `Installation code: ${state.activationRequest.installation_code}. Open https://accredicore.danandad.com/#activation from another device. Use the same email used during registration; the portal validates that email before showing the download buttons for .env and activation.json. After both files are downloaded, return to this installer, browse both files, then import them.`;
-    if (openBtn) openBtn.style.display = 'none';
+    if (openBtn) openBtn.style.display = '';
     if (copyBtn) copyBtn.style.display = '';
     if (downloadBtn) downloadBtn.style.display = '';
     appendOutput('Step 6 offline selected.');
@@ -1475,12 +1501,18 @@
 
     if (state.repoValidated && !state.dbBootstrapCompleted) {
       panel.style.display = '';
-      if (title) title.textContent = 'Step 5A/5B — Database Set-up';
+      if (title) title.textContent = state.dbBootstrapFailed
+        ? translate('nextFixDatabaseTitle')
+        : 'Step 5A/5B — Database Set-up';
       if (hasPostgresClient(state.lastReport)) {
-        if (text) text.textContent = 'Create/reset the database safely, import the table structure from the cloned AccrediCore repository, then run the connection smoke test. Step 6 appears only after this succeeds.';
+        if (text) text.textContent = state.dbBootstrapFailed
+          ? translate('nextFixDatabaseText')
+          : 'Create/reset the database safely, import the table structure from the cloned AccrediCore repository, then run the connection smoke test. Step 6 appears only after this succeeds.';
         if (db) db.style.display = '';
       } else {
-        if (text) text.textContent = 'PostgreSQL client/server is missing. Run Step 2 Install Dependencies and rerun Step 1 Check Requirements before database setup.';
+        if (text) text.textContent = state.dbBootstrapFailed
+          ? translate('nextFixDatabaseText')
+          : 'PostgreSQL client/server is missing. Run Step 2 Install Dependencies and rerun Step 1 Check Requirements before database setup.';
       }
       return;
     }
