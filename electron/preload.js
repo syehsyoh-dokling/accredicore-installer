@@ -9,6 +9,7 @@ contextBridge.exposeInMainWorld('accredicore', {
   runAction: (payload) => ipcRenderer.invoke('accredicore:run-action', payload),
   openPath: (targetPath) => ipcRenderer.invoke('accredicore:open-path', targetPath),
   openExternal: (url) => ipcRenderer.invoke('accredicore:open-external', url),
+  copyText: (text) => ipcRenderer.invoke('accredicore:copy-text', text),
   selectFile: () => ipcRenderer.invoke('accredicore:select-file'),
   selectFolder: () => ipcRenderer.invoke('accredicore:select-folder')
 });

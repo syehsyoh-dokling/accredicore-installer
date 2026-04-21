@@ -727,6 +727,28 @@
     window.open(url, '_blank', 'noopener,noreferrer');
   }
 
+  async function copyActivationUrl() {
+    const url = 'https://accredicore.danandad.com/#activation';
+    if (window.accredicore && typeof window.accredicore.copyText === 'function') {
+      await window.accredicore.copyText(url);
+    } else if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(url);
+    }
+    appendOutput(`Activation portal URL copied: ${url}`);
+  }
+
+  function showOfflineActivationModal() {
+    const modal = byId('offline-activation-modal');
+    if (!modal) return;
+    modal.hidden = false;
+  }
+
+  function hideOfflineActivationModal() {
+    const modal = byId('offline-activation-modal');
+    if (!modal) return;
+    modal.hidden = true;
+  }
+
   function randomChunk(length) {
     const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     const bytes = new Uint8Array(length);
@@ -812,9 +834,13 @@
     const title = byId('activation-guidance-title');
     const text = byId('activation-guidance-text');
     const downloadBtn = byId('download-activation-request-btn');
+    const openBtn = byId('open-activation-site-btn');
+    const copyBtn = byId('copy-activation-url-btn');
     if (!wrap || !title || !text) return;
 
     wrap.style.display = '';
+    if (openBtn) openBtn.style.display = '';
+    if (copyBtn) copyBtn.style.display = 'none';
     if (mode === 'online') {
       state.activationRequest = null;
       title.textContent = 'Online activation';
@@ -827,11 +853,15 @@
     state.activationRequest = buildOfflineActivationRequest();
     title.textContent = 'Offline activation code';
     text.textContent = `Installation code: ${state.activationRequest.installation_code}. Open https://accredicore.danandad.com/#activation from another device. Use the same email used during registration; the portal validates that email before showing the download buttons for .env and activation.json. After both files are downloaded, return to this installer, browse both files, then import them.`;
+    if (openBtn) openBtn.style.display = 'none';
+    if (copyBtn) copyBtn.style.display = '';
     if (downloadBtn) downloadBtn.style.display = '';
     appendOutput('Step 6 offline selected.');
     appendOutput(`Offline installation code: ${state.activationRequest.installation_code}`);
     appendOutput('Open https://accredicore.danandad.com/#activation from another device.');
+    appendOutput('This offline device will not open the website automatically. Use "Copy portal URL" and send/open it on another internet-connected device.');
     appendOutput('Use the same email used during registration. If the email is found, the portal will show download buttons for .env and activation.json.');
+    showOfflineActivationModal();
   }
 
   function downloadActivationRequest() {
@@ -1062,6 +1092,12 @@
     const browseActivationBtn = byId('browse-activation-btn');
     const importConfigBtn = byId('import-config-btn');
     const openActivationSiteBtn = byId('open-activation-site-btn');
+    const copyActivationUrlBtn = byId('copy-activation-url-btn');
+    const modalCopyActivationUrlBtn = byId('modal-copy-activation-url-btn');
+    const modalDownloadActivationRequestBtn = byId('modal-download-activation-request-btn');
+    const closeOfflineActivationModalBtn = byId('close-offline-activation-modal-btn');
+    const modalCloseSecondaryBtn = byId('modal-close-secondary-btn');
+    const offlineActivationModal = byId('offline-activation-modal');
     const activationOnlineBtn = byId('activation-online-btn');
     const activationOfflineBtn = byId('activation-offline-btn');
     const downloadActivationRequestBtn = byId('download-activation-request-btn');
@@ -1076,6 +1112,16 @@
     if (browseActivationBtn) browseActivationBtn.addEventListener('click', () => browseForConfig('activation'));
     if (importConfigBtn) importConfigBtn.addEventListener('click', importConfig);
     if (openActivationSiteBtn) openActivationSiteBtn.addEventListener('click', openActivationWebsite);
+    if (copyActivationUrlBtn) copyActivationUrlBtn.addEventListener('click', copyActivationUrl);
+    if (modalCopyActivationUrlBtn) modalCopyActivationUrlBtn.addEventListener('click', copyActivationUrl);
+    if (modalDownloadActivationRequestBtn) modalDownloadActivationRequestBtn.addEventListener('click', downloadActivationRequest);
+    if (closeOfflineActivationModalBtn) closeOfflineActivationModalBtn.addEventListener('click', hideOfflineActivationModal);
+    if (modalCloseSecondaryBtn) modalCloseSecondaryBtn.addEventListener('click', hideOfflineActivationModal);
+    if (offlineActivationModal) {
+      offlineActivationModal.addEventListener('click', (event) => {
+        if (event.target === offlineActivationModal) hideOfflineActivationModal();
+      });
+    }
     if (activationOnlineBtn) activationOnlineBtn.addEventListener('click', () => showActivationGuidance('online'));
     if (activationOfflineBtn) activationOfflineBtn.addEventListener('click', () => showActivationGuidance('offline'));
     if (downloadActivationRequestBtn) downloadActivationRequestBtn.addEventListener('click', downloadActivationRequest);

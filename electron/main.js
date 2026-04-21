@@ -1,4 +1,4 @@
-﻿const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
+﻿const { app, BrowserWindow, ipcMain, dialog, shell, clipboard } = require('electron');
 const path = require('path');
 const { spawn } = require('child_process');
 const fs = require('fs');
@@ -205,6 +205,10 @@ ipcMain.handle('accredicore:select-folder', async () => {
 });
 
 ipcMain.handle('accredicore:open-external', async (_event, url) => shell.openExternal(url));
+ipcMain.handle('accredicore:copy-text', async (_event, text) => {
+  clipboard.writeText(String(text || ''));
+  return true;
+});
 
 app.whenReady().then(() => {
   createWindow();
