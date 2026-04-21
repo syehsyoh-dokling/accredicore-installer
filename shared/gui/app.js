@@ -273,6 +273,61 @@
     refreshWorkflow();
   }
 
+  function renderBrowserModeBlocker() {
+    const shell = document.querySelector('.page-shell');
+    const main = document.querySelector('main');
+    if (!shell || !main) return;
+
+    const launcherMap = {
+      windows: {
+        file: 'Start-Installer-for-windows.bat',
+        action: 'Double-click Start-Installer-for-windows.bat. If Windows blocks it, right-click and choose Run as administrator.',
+        fallback: 'If the BAT file does not open, right-click it and choose Open with Windows Command Processor.'
+      },
+      linux: {
+        file: 'Start-Installer-for-linux.sh',
+        action: 'Open Terminal in the extracted folder, then run: chmod +x Start-Installer-for-linux.sh && ./Start-Installer-for-linux.sh',
+        fallback: 'If permission is denied, run chmod +x Start-Installer-for-linux.sh first.'
+      },
+      macos: {
+        file: 'Start-Installer-for-macos.command',
+        action: 'Double-click Start-Installer-for-macos.command, or run it from Terminal after chmod +x.',
+        fallback: 'If macOS blocks it, open System Settings > Privacy & Security and allow the file.'
+      }
+    };
+
+    const current = launcherMap[state.platform] || launcherMap.windows;
+    const guide = document.createElement('section');
+    guide.className = 'browser-blocker card stack-gap';
+    guide.innerHTML = `
+      <p class="eyebrow">Native installer required</p>
+      <h2>You opened the browser guide, not the real installer</h2>
+      <p class="lead">
+        This browser page cannot check Docker, PostgreSQL, ports, or install dependencies.
+        To run the real setup workflow, close this browser tab and launch the native runner from the extracted installer folder.
+      </p>
+      <div class="next-step-panel">
+        <h3>Use this file</h3>
+        <p class="lead"><code>${current.file}</code></p>
+        <p class="lead">${current.action}</p>
+        <p class="lead">${current.fallback}</p>
+      </div>
+      <ol class="steps-list">
+        <li>Make sure the ZIP has been extracted first. Do not open files from inside the ZIP preview.</li>
+        <li>Open the extracted folder named <code>Arab-Compaliance-Hub-Installer</code>.</li>
+        <li>Run <code>${current.file}</code>.</li>
+        <li>When the native window opens, <strong>Runtime</strong> must show <code>electron</code>, not <code>browser</code>.</li>
+      </ol>
+      <div class="button-row wrap">
+        <a class="btn secondary" href="../../index.html">Open start guide</a>
+      </div>
+    `;
+
+    main.style.display = 'none';
+    shell.appendChild(guide);
+    setWorkflowStatus('Browser-only mode detected. Close this page and run the native launcher file from the extracted installer folder.');
+  }
+
   function renderPortResolution(report) {
     const wrap = byId('port-resolution-wrap');
     const body = byId('port-resolution-body');
@@ -971,6 +1026,8 @@
       appendOutput('The BAT launcher will show a warning first. It will ask permission before opening the Node.js download page or running npm install.');
       appendOutput('Technical fallback: install Node.js LTS, run npm install, then run npm run app from the installer folder.');
       appendOutput('');
+      renderBrowserModeBlocker();
+      return;
     }
 
     const buttons = document.querySelectorAll('[data-action]');

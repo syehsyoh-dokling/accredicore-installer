@@ -29,7 +29,7 @@ function Confirm-LauncherAction {
 if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
     Show-LauncherNotice `
         -Title 'Required component missing: Node.js LTS' `
-        -Message 'Your device does not have Node.js installed. The native installer needs Node.js and npm to start the desktop launcher. If you continue, we will open the official Node.js download page. After installing Node.js LTS, run Start-Windows-Installer.bat again.'
+        -Message 'Your device does not have Node.js installed. The native installer needs Node.js and npm to start the desktop launcher. If you continue, we will open the official Node.js download page. After installing Node.js LTS, run Start-Installer-for-windows.bat again.'
 
     if (Confirm-LauncherAction 'Do you agree to open the Node.js LTS download page now?') {
         Start-Process 'https://nodejs.org/en/download'
