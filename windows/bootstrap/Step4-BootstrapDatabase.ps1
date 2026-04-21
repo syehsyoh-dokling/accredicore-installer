@@ -110,6 +110,44 @@ function Resolve-SchemaPath {
   throw "No bootstrap schema file was found in the cloned AccrediCore project."
 }
 
+function Format-PsqlError {
+  param(
+    [string]$Context,
+    [object]$Details
+  )
+
+  $text = ($Details | Out-String).Trim()
+  if ($text -match "no password supplied|password authentication failed") {
+    return "$Context PostgreSQL requires a valid password for user '$DbUser'. Enter the PostgreSQL password in the Database password field, then run Step 5A/5B again. Details: $text"
+  }
+
+  return "$Context Details: $text"
+}
+
+$script:LastPsqlExitCode = 0
+function Invoke-Psql {
+  param(
+    [Parameter(Mandatory=$true)][string[]]$Arguments
+  )
+
+  $oldPreference = $ErrorActionPreference
+  $ErrorActionPreference = "Continue"
+  try {
+    $output = & $psqlCommand @Arguments 2>&1 | ForEach-Object {
+      if ($_ -is [System.Management.Automation.ErrorRecord]) {
+        $_.Exception.Message
+      } else {
+        $_
+      }
+    }
+    $script:LastPsqlExitCode = $LASTEXITCODE
+    return $output
+  }
+  finally {
+    $ErrorActionPreference = $oldPreference
+  }
+}
+
 if (-not (Test-Path -LiteralPath $ProjectRoot)) {
   throw "ProjectRoot does not exist: $ProjectRoot"
 }
@@ -130,34 +168,53 @@ try {
   Write-Host "- Database target: ${DbHost}:${DbPort} / $DbName"
   Write-Host "- Schema file: $schemaFile"
 
-  $existsOutput = & $psqlCommand -h $DbHost -p $DbPort -U $DbUser -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname = '$DbName';" 2>&1
-  if ($LASTEXITCODE -ne 0) {
-    throw "Could not query PostgreSQL server. Details: $existsOutput"
+  $existsOutput = Invoke-Psql -Arguments @("-w", "-h", $DbHost, "-p", "$DbPort", "-U", $DbUser, "-d", "postgres", "-tAc", "SELECT 1 FROM pg_database WHERE datname = '$DbName';")
+  if ($script:LastPsqlExitCode -ne 0) {
+    throw (Format-PsqlError -Context "Could not query PostgreSQL server." -Details $existsOutput)
   }
 
   $dbExists = ($existsOutput | Out-String).Trim() -eq "1"
   if (-not $dbExists) {
-    $createOutput = & $psqlCommand -h $DbHost -p $DbPort -U $DbUser -d postgres -v ON_ERROR_STOP=1 -c "CREATE DATABASE ""$DbName"";" 2>&1
-    if ($LASTEXITCODE -ne 0) {
-      throw "Could not create database '$DbName'. Details: $createOutput"
+    $createOutput = Invoke-Psql -Arguments @("-w", "-h", $DbHost, "-p", "$DbPort", "-U", $DbUser, "-d", "postgres", "-v", "ON_ERROR_STOP=1", "-c", "CREATE DATABASE ""$DbName"";")
+    if ($script:LastPsqlExitCode -ne 0) {
+      throw (Format-PsqlError -Context "Could not create database '$DbName'." -Details $createOutput)
     }
     Write-Host "- Database created successfully."
   } else {
-    Write-Host "- Database already exists. Re-importing structure into the existing database."
+    Write-Host "- Database already exists. Resetting application schemas before re-import."
+    $disconnectSql = "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$DbName' AND pid <> pg_backend_pid();"
+    $disconnectOutput = Invoke-Psql -Arguments @("-w", "-h", $DbHost, "-p", "$DbPort", "-U", $DbUser, "-d", "postgres", "-v", "ON_ERROR_STOP=1", "-c", $disconnectSql)
+    if ($script:LastPsqlExitCode -ne 0) {
+      throw (Format-PsqlError -Context "Could not prepare existing database for reset." -Details $disconnectOutput)
+    }
+
+    $resetSql = @"
+SET lock_timeout = '15s';
+DROP SCHEMA IF EXISTS auth CASCADE;
+DROP SCHEMA IF EXISTS public CASCADE;
+CREATE SCHEMA public;
+GRANT ALL ON SCHEMA public TO public;
+"@
+    $resetOutput = Invoke-Psql -Arguments @("-w", "-h", $DbHost, "-p", "$DbPort", "-U", $DbUser, "-d", $DbName, "-v", "ON_ERROR_STOP=1", "-c", $resetSql)
+    if ($script:LastPsqlExitCode -ne 0) {
+      throw (Format-PsqlError -Context "Could not reset existing database schemas safely." -Details $resetOutput)
+    }
+    Write-Host "- Existing application schemas reset successfully."
   }
 
-  $importOutput = & $psqlCommand -h $DbHost -p $DbPort -U $DbUser -d $DbName -v ON_ERROR_STOP=1 -f $schemaFile 2>&1
-  if ($LASTEXITCODE -ne 0) {
-    throw "Schema import failed. Details: $importOutput"
+  Write-Host "- Step 5A: importing bundled database structure."
+  $importOutput = Invoke-Psql -Arguments @("-w", "-h", $DbHost, "-p", "$DbPort", "-U", $DbUser, "-d", $DbName, "-v", "ON_ERROR_STOP=1", "-f", $schemaFile)
+  if ($script:LastPsqlExitCode -ne 0) {
+    throw (Format-PsqlError -Context "Schema import failed." -Details $importOutput)
   }
 
   Write-Host "- Database structure import completed successfully."
-  Write-Host "- Running smoke test: database connection and table visibility."
+  Write-Host "- Step 5B: running smoke test for database connection and table visibility."
 
   $smokeSql = "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public';"
-  $smokeOutput = & $psqlCommand -h $DbHost -p $DbPort -U $DbUser -d $DbName -tAc $smokeSql 2>&1
-  if ($LASTEXITCODE -ne 0) {
-    throw "Database smoke test failed. Details: $smokeOutput"
+  $smokeOutput = Invoke-Psql -Arguments @("-w", "-h", $DbHost, "-p", "$DbPort", "-U", $DbUser, "-d", $DbName, "-tAc", $smokeSql)
+  if ($script:LastPsqlExitCode -ne 0) {
+    throw (Format-PsqlError -Context "Database smoke test failed." -Details $smokeOutput)
   }
 
   $tableCount = ($smokeOutput | Out-String).Trim()
@@ -169,6 +226,10 @@ try {
   Write-Host "- Public table/view objects detected: $tableCount"
   Write-Host "- Step 5 completed. Continue to Step 6 to import .env and activation.json."
   exit 0
+}
+catch {
+  Write-Host ("ERROR: " + $_.Exception.Message)
+  exit 1
 }
 finally {
   Remove-Item Env:PGPASSWORD -ErrorAction SilentlyContinue

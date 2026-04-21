@@ -645,7 +645,7 @@
       return;
     }
 
-    appendOutput('>>> Step 5: Create database and import AccrediCore structure');
+    appendOutput('>>> Step 5A/5B: Create database, import AccrediCore structure, and test connection');
     const result = await window.accredicore.runAction({
       action: 'bootstrap-database',
       targetDir,
@@ -659,7 +659,7 @@
 
     if (result.code === 0) {
       state.dbBootstrapCompleted = true;
-      appendOutput('Database bootstrap and smoke test completed successfully. Step 6 is now unlocked.');
+      appendOutput('Step 5A/5B completed successfully: database import and smoke test passed. Step 6 is now unlocked.');
     }
 
     refreshWorkflow();
@@ -879,7 +879,7 @@
 
     if (!state.dbBootstrapCompleted) {
       setWorkflowStatus(postgresReady
-        ? 'Repository validation completed. Step 5 is active: create the database and import the AccrediCore structure.'
+        ? 'Repository validation completed. Step 5A/5B is active: create the database, import the AccrediCore structure, then test the connection.'
         : 'Repository validation completed, but PostgreSQL client/server is missing. Run Step 2 Install Dependencies and rerun Step 1 check before Step 5.');
       setGithubStepStatus('Step 4 completed successfully.');
       if (dbStatus) dbStatus.textContent = postgresReady
@@ -931,9 +931,9 @@
 
     if (state.repoValidated && !state.dbBootstrapCompleted) {
       panel.style.display = '';
-      if (title) title.textContent = 'Step 5 — Database Set-up';
+      if (title) title.textContent = 'Step 5A/5B — Database Set-up';
       if (hasPostgresClient(state.lastReport)) {
-        if (text) text.textContent = 'Create the database, import the table structure from the cloned AccrediCore repository, and test the connection.';
+        if (text) text.textContent = 'Create/reset the database safely, import the table structure from the cloned AccrediCore repository, then run the connection smoke test. Step 6 appears only after this succeeds.';
         if (db) db.style.display = '';
       } else {
         if (text) text.textContent = 'PostgreSQL client/server is missing. Run Step 2 Install Dependencies and rerun Step 1 Check Requirements before database setup.';
