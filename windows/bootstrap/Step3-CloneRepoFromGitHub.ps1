@@ -53,6 +53,63 @@ function Resolve-TargetDir {
   return $p
 }
 
+function Test-AccrediCoreProject {
+  param([string]$PathInput)
+
+  $required = @(
+    "README.md",
+    ".gitignore",
+    "app-source",
+    "database\bootstrap",
+    "docs",
+    "scripts"
+  )
+
+  foreach ($item in $required) {
+    if (-not (Test-Path (Join-Path $PathInput $item))) {
+      return $false
+    }
+  }
+
+  return $true
+}
+
+function Test-FolderHasContent {
+  param([string]$PathInput)
+
+  $existing = Get-ChildItem -Path $PathInput -Force -ErrorAction SilentlyContinue
+  return ($existing -and $existing.Count -gt 0)
+}
+
+function Get-AvailableTargetDir {
+  param([string]$PreferredPath)
+
+  if (-not (Test-Path $PreferredPath)) {
+    return $PreferredPath
+  }
+
+  if (-not (Test-FolderHasContent -PathInput $PreferredPath)) {
+    return $PreferredPath
+  }
+
+  if (Test-AccrediCoreProject -PathInput $PreferredPath) {
+    return $PreferredPath
+  }
+
+  for ($i = 1; $i -le 99; $i++) {
+    $candidate = "$PreferredPath-$i"
+    if (-not (Test-Path $candidate)) {
+      return $candidate
+    }
+    if (-not (Test-FolderHasContent -PathInput $candidate)) {
+      return $candidate
+    }
+  }
+
+  $stamp = Get-Date -Format "yyyyMMdd-HHmmss"
+  return "$PreferredPath-$stamp"
+}
+
 try {
   if ([string]::IsNullOrWhiteSpace($RepoUrl)) {
     throw "RepoUrl is required."
@@ -63,6 +120,8 @@ try {
   }
 
   $ResolvedTargetDir = Resolve-TargetDir -PathInput $TargetDir
+  $PreferredTargetDir = $ResolvedTargetDir
+  $ResolvedTargetDir = Get-AvailableTargetDir -PreferredPath $ResolvedTargetDir
 
   $parentDir = Split-Path -Path $ResolvedTargetDir -Parent
   if (-not (Test-Path $parentDir)) {
@@ -78,9 +137,23 @@ try {
     Write-Host "  $ResolvedTargetDir"
   }
 
-  $existing = Get-ChildItem -Path $ResolvedTargetDir -Force -ErrorAction SilentlyContinue
-  if ($existing -and $existing.Count -gt 0) {
-    throw "Target folder is not empty. Choose another location or clear it first."
+  if ((Test-FolderHasContent -PathInput $ResolvedTargetDir) -and (Test-AccrediCoreProject -PathInput $ResolvedTargetDir)) {
+    Write-Host ""
+    Write-Host "Existing AccrediCore project detected. Clone step skipped safely."
+    Write-Host "Target   : $ResolvedTargetDir"
+    Write-Host ""
+    Write-Host "STEP 3 RESULT"
+    Write-Host "- Existing repository/project was reused."
+    Write-Host "- No files were overwritten."
+    Write-Host "- Resolved path: $ResolvedTargetDir"
+    exit 0
+  }
+
+  if ($PreferredTargetDir -ne $ResolvedTargetDir) {
+    Write-Host ""
+    Write-Host "Preferred target folder already contains unrelated files."
+    Write-Host "The installer selected a clean folder automatically:"
+    Write-Host "  $ResolvedTargetDir"
   }
 
   Write-Host ""

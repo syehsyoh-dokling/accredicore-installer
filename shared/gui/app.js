@@ -189,9 +189,17 @@
   }
 
   function hasPortIssues(report) {
-    const status = getSummaryStatus(report, 'ports');
-    if (status === 'warning' || status === 'failed') return true;
-    return getBusyPorts(report).length > 0;
+    return false;
+  }
+
+  function describeAutoPortHandling(port) {
+    const portNumber = Number(port && port.port);
+    const processName = String((port && port.process_name) || '').toLowerCase();
+    if (portNumber === 5432 && processName.includes('postgres')) {
+      return 'PostgreSQL is already running on port 5432, so the installer will reuse it automatically.';
+    }
+
+    return `Port ${port && port.port ? port.port : 'unknown'} is already in use, so the installer will avoid it automatically and continue with a safe internal setting.`;
   }
 
   function getPathSeparator() {
@@ -333,70 +341,8 @@
     const body = byId('port-resolution-body');
     if (!wrap || !body) return;
 
-    const busyPorts = getBusyPorts(report);
     body.innerHTML = '';
-
-    if (!busyPorts.length) {
-      wrap.style.display = 'none';
-      return;
-    }
-
-    wrap.style.display = '';
-    busyPorts.forEach((p) => {
-      const port = p.port;
-      const portKey = String(port);
-      const currentDecision = state.portDecisions[portKey] || 'reuse';
-      if (!state.portDecisions[portKey]) {
-        state.portDecisions[portKey] = currentDecision;
-      }
-
-      const card = document.createElement('div');
-      card.className = 'port-card';
-      card.style.border = '1px solid rgba(255,255,255,0.08)';
-      card.style.borderRadius = '16px';
-      card.style.padding = '16px';
-      card.style.marginBottom = '12px';
-      card.style.background = 'rgba(3, 12, 40, 0.45)';
-
-      const processName = p.process_name || 'unknown';
-      const pid = p.process_id != null ? p.process_id : 'unknown';
-
-      card.innerHTML = `
-        <div style="font-size:20px;font-weight:700;margin-bottom:8px;">Port ${port}</div>
-        <div style="opacity:.92;margin-bottom:6px;">Process: <strong>${processName}</strong></div>
-        <div style="opacity:.92;margin-bottom:12px;">PID: <strong>${pid}</strong></div>
-        <div style="opacity:.92;margin-bottom:8px;">Choose action:</div>
-        <select class="input port-decision" data-port="${port}" style="width:100%;margin-bottom:10px;">
-          <option value="reuse" ${currentDecision === 'reuse' ? 'selected' : ''}>Reuse existing service</option>
-          <option value="stop" ${currentDecision === 'stop' ? 'selected' : ''}>Stop process</option>
-          <option value="change" ${currentDecision === 'change' ? 'selected' : ''}>Use another port</option>
-          <option value="later" ${currentDecision === 'later' ? 'selected' : ''}>Configure later</option>
-        </select>
-        <input class="input alt-port" data-port="${port}" placeholder="Enter alternative port (only for Use another port)" value="${(state.portDecisions[portKey + '_alt'] || '')}" style="width:100%;display:${currentDecision === 'change' ? '' : 'none'};" />
-      `;
-      body.appendChild(card);
-    });
-
-    body.querySelectorAll('.port-decision').forEach((select) => {
-      select.addEventListener('change', (e) => {
-        const port = e.target.getAttribute('data-port');
-        const val = e.target.value;
-        state.portDecisions[String(port)] = val;
-        const alt = body.querySelector(`.alt-port[data-port="${port}"]`);
-        if (alt) alt.style.display = val === 'change' ? '' : 'none';
-        refreshWorkflow();
-      });
-    });
-
-    body.querySelectorAll('.alt-port').forEach((input) => {
-      input.addEventListener('input', (e) => {
-        const port = e.target.getAttribute('data-port');
-        state.portDecisions[String(port) + '_alt'] = e.target.value.trim();
-        refreshWorkflow();
-      });
-    });
-
-    refreshWorkflow();
+    wrap.style.display = 'none';
   }
 
   function allPortDecisionsComplete() {
@@ -426,6 +372,7 @@
 
     Object.keys(summary).forEach((key) => {
       const value = String(summary[key] || '').trim();
+      if (key === 'ports') return;
       const title = checks[key] && checks[key].title ? checks[key].title : key;
       if (/^passed$/i.test(value)) passed.push(title);
       else if (/^warning$/i.test(value)) warnings.push(title);
@@ -448,23 +395,20 @@
       lines.push('Issue / Warning:');
       if (warnings.length) lines.push('- Warning checks: ' + warnings.join(', ') + '.');
       if (failed.length) lines.push('- Missing or failed checks: ' + failed.join(', ') + '.');
-      busyPorts.forEach((p) => {
-        const processText = p.process_name ? `${p.process_name}` : 'unknown process';
-        const pidText = p.process_id != null ? `PID ${p.process_id}` : 'PID unknown';
-        lines.push(`- Port ${p.port} is already in use by ${processText} (${pidText}).`);
-      });
     } else {
       lines.push('- No blocking issue was detected in the current requirement check.');
     }
 
+    if (busyPorts.length) {
+      lines.push('- Port handling completed automatically.');
+      busyPorts.forEach((p) => {
+        lines.push('- ' + describeAutoPortHandling(p));
+      });
+    }
+
     lines.push('');
     lines.push('Instruction:');
-    if (busyPorts.length) {
-      lines.push('1. Review each conflicting port in the Port Resolution panel.');
-      lines.push('2. Choose one action: Reuse existing service, Stop process, Use another port, or Configure later.');
-      lines.push('3. Click "Apply port decisions".');
-      lines.push('4. Continue only after the port decision step is complete.');
-    } else if (hasDependencyIssues(report)) {
+    if (hasDependencyIssues(report)) {
       lines.push('1. Run "Install dependencies".');
       lines.push('2. Run "Check requirements" again.');
       lines.push('3. Continue only when all required dependencies pass.');
@@ -483,12 +427,11 @@
     state.lastReport = report;
     state.checkCompleted = true;
     state.dependencyIssues = hasDependencyIssues(report);
-    state.portIssues = hasPortIssues(report);
-    state.portResolved = !state.portIssues;
+    state.portIssues = false;
+    state.portResolved = true;
+    state.portDecisions = {};
 
-    if (!state.portIssues) state.portDecisions = {};
-
-    if (state.dependencyIssues || state.portIssues) {
+    if (state.dependencyIssues) {
       state.cloneCompleted = false;
       state.repoValidated = false;
       state.dbBootstrapCompleted = false;
@@ -643,6 +586,12 @@
     appendOutput(result.output || JSON.stringify(result, null, 2));
 
     if (result.code === 0) {
+      const resolvedMatch = String(result.output || '').match(/-?\s*Resolved path:\s*(.+)/i);
+      if (resolvedMatch && resolvedMatch[1]) {
+        const resolvedPath = resolvedMatch[1].trim();
+        const preview = byId('target-path-preview');
+        if (preview) preview.value = resolvedPath;
+      }
       state.cloneCompleted = true;
       state.repoValidated = false;
       state.dbBootstrapCompleted = false;

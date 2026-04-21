@@ -3,62 +3,109 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Arab Compliance Hub Installer Launcher</title>
+  <title>Arab Compliance Hub Installer - Start Here</title>
   <link rel="stylesheet" href="./shared/gui/styles.css" />
+  <style>
+    .language-start {
+      max-width: 1040px;
+      margin: 0 auto;
+    }
+    .launcher-callout {
+      border: 1px solid rgba(255, 212, 112, .38);
+      background: rgba(255, 212, 112, .12);
+      color: #fff5cf;
+    }
+    .launcher-file {
+      display: inline-flex;
+      align-items: center;
+      padding: 10px 14px;
+      border-radius: 14px;
+      background: rgba(0, 0, 0, .28);
+      border: 1px solid rgba(255,255,255,.1);
+      font-weight: 800;
+      word-break: break-word;
+    }
+    .lang-switch {
+      display: inline-flex;
+      gap: 8px;
+      padding: 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.12);
+    }
+    .lang-switch button {
+      border: 0;
+      cursor: pointer;
+      border-radius: 999px;
+      padding: 10px 18px;
+      color: #d8e7ff;
+      background: transparent;
+      font-weight: 800;
+    }
+    .lang-switch button.active {
+      color: #07112a;
+      background: #5af0c7;
+    }
+    [dir="rtl"] .steps-list {
+      padding-right: 22px;
+      padding-left: 0;
+    }
+  </style>
 </head>
 <body>
-  <div class="page-shell">
+  <div class="page-shell language-start">
     <header class="hero-card">
       <div>
-        <p class="eyebrow">Arab Compliance Hub Installer</p>
-        <h1>Universal launcher for Windows, Linux, and macOS</h1>
-        <p class="lead">
-          This launcher detects the current operating system, selects the correct native runner,
-          and keeps the installation flow aligned across platforms.
+        <p class="eyebrow" data-i18n="kicker">Arab Compliance Hub Installer</p>
+        <h1 data-i18n="title">Choose language, then run the native installer</h1>
+        <p class="lead" data-i18n="intro">
+          This page is only a start guide. A normal browser cannot install dependencies or run system checks.
         </p>
       </div>
       <div class="hero-meta">
+        <div class="lang-switch" aria-label="Language">
+          <button type="button" class="active" data-lang="en">English</button>
+          <button type="button" data-lang="ar">العربية</button>
+        </div>
         <div class="status-pill" id="detected-platform">Detecting platform...</div>
-        <div class="status-pill secondary" id="runtime-mode">Browser mode</div>
       </div>
     </header>
 
     <main class="grid two-columns">
-      <section class="card stack-gap">
-        <h2>Recommended action</h2>
-        <p id="recommended-copy">Checking your operating system and available launcher.</p>
-        <div class="button-row wrap" id="primary-actions"></div>
-        <p class="lead" id="zip-warning" style="display:none;">
-          This page appears to be opened from a ZIP preview or temporary folder. Extract
-          <code>accredicore-installer-final.zip</code> first, open
-          <code>Arab-Compaliance-Hub-Installer</code>, then run the launcher file.
+      <section class="card stack-gap launcher-callout">
+        <h2 data-i18n="mustRun">Run this file from the extracted folder</h2>
+        <p class="lead" data-i18n="browserLimit">
+          If this page opened in Chrome, Edge, Firefox, or Safari, close it and run the launcher file below.
         </p>
+        <p><span class="launcher-file" id="recommended-file">Start-Installer-for-windows.bat</span></p>
+        <p class="lead" id="recommended-action">Double-click the Windows BAT file.</p>
       </section>
 
       <section class="card stack-gap">
-        <h2>Available launchers</h2>
-        <div class="os-cards" id="os-cards"></div>
-      </section>
-
-      <section class="card stack-gap">
-        <h2>Native workflow</h2>
+        <h2 data-i18n="why">Why this is required</h2>
         <ol class="steps-list">
-          <li>Run requirement check.</li>
-          <li>Install missing dependencies.</li>
-          <li>Resolve any port conflicts.</li>
-          <li>Clone <code>accredicore-main</code> into the target working directory.</li>
-          <li>Create the database automatically and import the bundled schema.</li>
-          <li>Request and import the unique <code>.env</code> and <code>activation.json</code> files.</li>
+          <li data-i18n="why1">The real installer must check Docker, PostgreSQL, Git, Node.js, and local write permissions.</li>
+          <li data-i18n="why2">Browsers are blocked from running BAT, SH, or COMMAND files for security reasons.</li>
+          <li data-i18n="why3">The native launcher opens the same installer screen, but with system access enabled.</li>
         </ol>
       </section>
 
       <section class="card stack-gap">
-        <h2>Manual fallback paths</h2>
+        <h2 data-i18n="stepsTitle">Safe start steps</h2>
+        <ol class="steps-list">
+          <li data-i18n="step1">Make sure the ZIP file has been extracted first.</li>
+          <li data-i18n="step2">Open the extracted folder named Arab-Compaliance-Hub-Installer.</li>
+          <li data-i18n="step3">Run the launcher file recommended above.</li>
+          <li data-i18n="step4">When the installer opens, Runtime must show electron, not browser.</li>
+        </ol>
+      </section>
+
+      <section class="card stack-gap">
+        <h2 data-i18n="allLaunchers">Launcher files</h2>
         <ul class="plain-list">
-          <li>Windows launcher: <code>./Start-Installer-for-windows.bat</code></li>
-          <li>Linux launcher: <code>./Start-Installer-for-linux.sh</code></li>
-          <li>macOS launcher: <code>./Start-Installer-for-macos.command</code></li>
-          <li>Browser fallback: <code>./windows/gui/index.html</code>, <code>./linux/gui/index.html</code>, or <code>./macos/gui/index.html</code></li>
+          <li><code>Start-Installer-for-windows.bat</code></li>
+          <li><code>Start-Installer-for-linux.sh</code></li>
+          <li><code>Start-Installer-for-macos.command</code></li>
         </ul>
       </section>
     </main>
@@ -66,68 +113,87 @@
 
   <script>
     (function () {
-      const ua = navigator.userAgent || "";
-      const platform = navigator.platform || "";
-      const lower = (ua + " " + platform).toLowerCase();
-      const href = decodeURIComponent(window.location.href);
-      let os = "unknown";
-      if (lower.includes("win")) os = "windows";
-      else if (lower.includes("mac") || lower.includes("darwin")) os = "macos";
-      else if (lower.includes("linux") || lower.includes("x11")) os = "linux";
-
-      const isElectron = !!(window.accredicore && window.accredicore.runtime === "electron");
-      const openedFromZip = /appdata\/local\/temp/i.test(href) || /\.zip/i.test(href);
-      document.getElementById("detected-platform").textContent = "Detected OS: " + os;
-      document.getElementById("runtime-mode").textContent = isElectron ? "Desktop app mode" : "Browser mode";
-      document.getElementById("zip-warning").style.display = openedFromZip ? "block" : "none";
-
-      const routes = {
-        windows: {
-          label: "Windows launcher",
-          href: "./windows/gui/index.html",
-          runner: "./Start-Installer-for-windows.bat",
-          instruction: "Run Start-Installer-for-windows.bat from the extracted folder."
+      const copy = {
+        en: {
+          kicker: "Arab Compliance Hub Installer",
+          title: "Choose language, then run the native installer",
+          intro: "This page is only a start guide. A normal browser cannot install dependencies or run system checks.",
+          mustRun: "Run this file from the extracted folder",
+          browserLimit: "If this page opened in Chrome, Edge, Firefox, or Safari, close it and run the launcher file below.",
+          why: "Why this is required",
+          why1: "The real installer must check Docker, PostgreSQL, Git, Node.js, and local write permissions.",
+          why2: "Browsers are blocked from running BAT, SH, or COMMAND files for security reasons.",
+          why3: "The native launcher opens the same installer screen, but with system access enabled.",
+          stepsTitle: "Safe start steps",
+          step1: "Make sure the ZIP file has been extracted first.",
+          step2: "Open the extracted folder named Arab-Compaliance-Hub-Installer.",
+          step3: "Run the launcher file recommended above.",
+          step4: "When the installer opens, Runtime must show electron, not browser.",
+          allLaunchers: "Launcher files",
+          detected: "Detected OS: ",
+          actionWindows: "Double-click Start-Installer-for-windows.bat. If Windows asks for permission, allow it.",
+          actionLinux: "Open Terminal in this folder, then run: chmod +x Start-Installer-for-linux.sh && ./Start-Installer-for-linux.sh",
+          actionMacos: "Double-click Start-Installer-for-macos.command. If macOS blocks it, allow it from Privacy & Security.",
+          actionUnknown: "Choose the launcher file that matches your operating system."
         },
-        linux: {
-          label: "Linux launcher",
-          href: "./linux/gui/index.html",
-          runner: "./Start-Installer-for-linux.sh",
-          instruction: "Run chmod +x ./Start-Installer-for-linux.sh, then ./Start-Installer-for-linux.sh."
-        },
-        macos: {
-          label: "macOS launcher",
-          href: "./macos/gui/index.html",
-          runner: "./Start-Installer-for-macos.command",
-          instruction: "Run chmod +x ./Start-Installer-for-macos.command, then ./Start-Installer-for-macos.command."
+        ar: {
+          kicker: "مثبت عرب كومبلاينس هب",
+          title: "اختر اللغة ثم شغل المثبت الأصلي",
+          intro: "هذه الصفحة دليل بداية فقط. المتصفح العادي لا يستطيع تثبيت المتطلبات أو فحص النظام.",
+          mustRun: "شغل هذا الملف من المجلد بعد فك الضغط",
+          browserLimit: "إذا فُتحت هذه الصفحة داخل Chrome أو Edge أو Firefox أو Safari، أغلقها وشغل ملف التشغيل الموضح أدناه.",
+          why: "لماذا هذا مطلوب",
+          why1: "المثبت الحقيقي يحتاج إلى فحص Docker و PostgreSQL و Git و Node.js وصلاحيات الكتابة المحلية.",
+          why2: "المتصفحات تمنع تشغيل ملفات BAT أو SH أو COMMAND لأسباب أمنية.",
+          why3: "ملف التشغيل الأصلي يفتح نفس شاشة التثبيت ولكن بصلاحيات النظام المطلوبة.",
+          stepsTitle: "خطوات التشغيل الآمنة",
+          step1: "تأكد أولاً من فك ضغط ملف ZIP.",
+          step2: "افتح المجلد الناتج باسم Arab-Compaliance-Hub-Installer.",
+          step3: "شغل ملف التشغيل المقترح أعلاه.",
+          step4: "عند فتح المثبت يجب أن يظهر Runtime بقيمة electron وليس browser.",
+          allLaunchers: "ملفات التشغيل",
+          detected: "النظام المكتشف: ",
+          actionWindows: "انقر مرتين على Start-Installer-for-windows.bat. إذا طلب Windows الإذن فوافق.",
+          actionLinux: "افتح Terminal داخل هذا المجلد ثم شغل: chmod +x Start-Installer-for-linux.sh && ./Start-Installer-for-linux.sh",
+          actionMacos: "انقر مرتين على Start-Installer-for-macos.command. إذا منعه macOS فاسمح به من Privacy & Security.",
+          actionUnknown: "اختر ملف التشغيل المناسب لنظام التشغيل لديك."
         }
       };
 
-      const cards = document.getElementById("os-cards");
-      Object.entries(routes).forEach(function ([key, value]) {
-        const div = document.createElement("div");
-        div.className = "os-card" + (key === os ? " active" : "");
-        div.innerHTML = `
-          <h3>${key}</h3>
-          <p>${value.label}</p>
-          <p><code>${value.runner}</code></p>
-          <a class="btn secondary" href="${value.href}">Open ${key} GUI fallback</a>
-        `;
-        cards.appendChild(div);
+      const ua = `${navigator.userAgent || ""} ${navigator.platform || ""}`.toLowerCase();
+      let os = "unknown";
+      if (ua.includes("win")) os = "windows";
+      else if (ua.includes("mac") || ua.includes("darwin")) os = "macos";
+      else if (ua.includes("linux") || ua.includes("x11")) os = "linux";
+
+      const launcher = {
+        windows: "Start-Installer-for-windows.bat",
+        linux: "Start-Installer-for-linux.sh",
+        macos: "Start-Installer-for-macos.command",
+        unknown: "Start-Installer-for-windows.bat / Start-Installer-for-linux.sh / Start-Installer-for-macos.command"
+      };
+
+      function applyLanguage(lang) {
+        const dict = copy[lang] || copy.en;
+        document.documentElement.lang = lang;
+        document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+        document.querySelectorAll("[data-i18n]").forEach((node) => {
+          node.textContent = dict[node.dataset.i18n] || node.textContent;
+        });
+        document.querySelectorAll("[data-lang]").forEach((button) => {
+          button.classList.toggle("active", button.dataset.lang === lang);
+        });
+        document.getElementById("detected-platform").textContent = dict.detected + os;
+        document.getElementById("recommended-file").textContent = launcher[os] || launcher.unknown;
+        const actionKey = os === "windows" ? "actionWindows" : os === "linux" ? "actionLinux" : os === "macos" ? "actionMacos" : "actionUnknown";
+        document.getElementById("recommended-action").textContent = dict[actionKey];
+      }
+
+      document.querySelectorAll("[data-lang]").forEach((button) => {
+        button.addEventListener("click", () => applyLanguage(button.dataset.lang));
       });
 
-      const recommended = document.getElementById("recommended-copy");
-      const actions = document.getElementById("primary-actions");
-      const current = routes[os];
-      if (current) {
-        recommended.textContent = "This device appears to be " + os + ". " + current.instruction;
-        const openBtn = document.createElement("a");
-        openBtn.className = "btn primary";
-        openBtn.href = current.href;
-        openBtn.textContent = "Open detected GUI fallback";
-        actions.appendChild(openBtn);
-      } else {
-        recommended.textContent = "The operating system could not be detected reliably. Choose a launcher manually.";
-      }
+      applyLanguage("en");
     })();
   </script>
 </body>
