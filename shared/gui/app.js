@@ -88,6 +88,7 @@
       step6Locked: 'Step 6 is locked until database bootstrap completes.',
       step7Title: 'Step 7 — Start Backend and Frontend',
       step7Lead: 'After activation configuration succeeds, start the local backend services and the frontend development server.',
+      serverStartingNote: 'Server is starting. This can take 2-3 minutes on the first run. Please wait and do not close the opened service windows until Step 8 appears.',
       step7Button: 'Step 7. Run backend and frontend',
       step7Locked: 'Step 7 is locked until configuration import succeeds.',
       step8Title: 'Step 8 — Login Access',
@@ -175,6 +176,7 @@
       step6Locked: 'الخطوة 6 مقفلة حتى يكتمل إعداد قاعدة البيانات.',
       step7Title: 'الخطوة 7 — تشغيل الخلفية والواجهة',
       step7Lead: 'بعد نجاح إعداد التفعيل، شغل خدمات الخلفية وخادم الواجهة المحلي.',
+      serverStartingNote: 'جاري تشغيل الخادم. قد يستغرق ذلك من دقيقتين إلى ثلاث دقائق في أول تشغيل. يرجى الانتظار وعدم إغلاق نوافذ الخدمات المفتوحة حتى تظهر الخطوة 8.',
       step7Button: 'الخطوة 7. تشغيل الخلفية والواجهة',
       step7Locked: 'الخطوة 7 مقفلة حتى ينجح استيراد الإعدادات.',
       step8Title: 'الخطوة 8 — بيانات الدخول',
@@ -1065,6 +1067,7 @@
     }
 
     appendOutput('>>> Step 7: Start backend and frontend');
+    appendOutput('SERVER IS STARTING... This can take 2-3 minutes. Please wait until Step 8 appears and do not close the opened service windows.');
     const result = await window.accredicore.runAction({
       action: 'start-servers',
       targetDir,

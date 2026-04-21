@@ -64,6 +64,16 @@ function Start-NamedPowerShell {
   ) | Out-Null
 }
 
+function Write-Utf8NoBom {
+  param(
+    [Parameter(Mandatory=$true)][string]$Path,
+    [Parameter(Mandatory=$true)][string]$Content
+  )
+
+  $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+  [System.IO.File]::WriteAllText($Path, $Content, $utf8NoBom)
+}
+
 $appSource = Join-Path $ProjectRoot "app-source"
 $localApi = Join-Path $ProjectRoot "local-api"
 $setupScript = Join-Path $ProjectRoot "scripts\setup\setup-env-win.ps1"
@@ -83,7 +93,7 @@ VITE_SUPABASE_PROJECT_ID=accredicore-local
 VITE_SUPABASE_URL=http://127.0.0.1:54321
 VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH
 "@
-$frontendEnvContent | Set-Content -LiteralPath $frontendEnv -Encoding UTF8
+Write-Utf8NoBom -Path $frontendEnv -Content $frontendEnvContent
 Write-Host "- Frontend runtime env prepared: $frontendEnv"
 
 $apiEnv = Join-Path $localApi ".env"
@@ -95,11 +105,18 @@ DB_USER=$DbUser
 DB_PASSWORD=$DbPassword
 DB_NAME=$DbName
 "@
-$apiEnvContent | Set-Content -LiteralPath $apiEnv -Encoding UTF8
+Write-Utf8NoBom -Path $apiEnv -Content $apiEnvContent
 Write-Host "- Local API runtime env prepared: $apiEnv"
 
 Ensure-NpmInstall -Folder $appSource -Label "frontend"
 Ensure-NpmInstall -Folder $localApi -Label "local API"
+
+Write-Host ""
+Write-Host "SERVER IS STARTING..."
+Write-Host "- This usually takes 2-3 minutes on the first run."
+Write-Host "- Please keep the opened service windows running."
+Write-Host "- Continue to Step 8 only after the frontend window shows the local URL."
+Write-Host ""
 
 Write-Host "- Starting local Supabase stack. Docker Desktop must be running."
 Push-Location $appSource
