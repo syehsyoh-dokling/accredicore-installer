@@ -149,7 +149,7 @@
 
       <section class="card stack-gap" id="config-step-wrap" style="grid-column: 1 / -1; display:none;">
         <h2>Step 6 — Activation Configuration</h2>
-        <p class="lead">Choose the activation path. If this device has internet, open the vendor portal to request or download the unique `.env` and `activation.json`. If this device is offline, generate an offline activation code and submit it from another device.</p>
+        <p class="lead">Choose the activation path. If this device has internet, the installer will send an activation request to https://accredicore.danandad.com/ and save the unique `.env` and `activation.json` locally. If this device is offline, generate an offline activation code and submit it from another device using the same email used during registration.</p>
 
         <div class="button-row wrap">
           <button class="btn primary" id="activation-online-btn" type="button">Yes, this device is online</button>
@@ -160,7 +160,7 @@
           <h3 id="activation-guidance-title">Activation guidance</h3>
           <p class="lead" id="activation-guidance-text"></p>
           <div class="button-row wrap">
-            <button class="btn secondary" id="open-activation-site-btn" type="button">Open vendor activation website</button>
+            <button class="btn secondary" id="open-activation-site-btn" type="button">Open https://accredicore.danandad.com/#activation</button>
             <button class="btn secondary" id="download-activation-request-btn" type="button" style="display:none;">Download activation-request.json</button>
           </div>
         </div>

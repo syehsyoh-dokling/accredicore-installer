@@ -154,6 +154,35 @@ ipcMain.handle('accredicore:get-download-preference', async () => {
   return null;
 });
 
+ipcMain.handle('accredicore:request-online-activation', async (_event, payload) => {
+  const endpoint = 'https://accredicore.danandad.com/vendor-portal/api/installer-activation.php';
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload || {})
+  });
+  const data = await response.json();
+  if (!response.ok || !data.success) {
+    throw new Error(data.message || 'Online activation request failed.');
+  }
+
+  const outputDir = path.join(__dirname, '..', 'activation-downloads', data.request_id || Date.now().toString());
+  fs.mkdirSync(outputDir, { recursive: true });
+
+  const envPath = path.join(outputDir, '.env');
+  const activationPath = path.join(outputDir, 'activation.json');
+  fs.writeFileSync(envPath, String(data.files && data.files.env_content ? data.files.env_content : ''), 'utf8');
+  fs.writeFileSync(activationPath, JSON.stringify(data.files.activation_json, null, 2) + '\n', 'utf8');
+
+  return {
+    ...data,
+    saved_files: {
+      env_path: envPath,
+      activation_json_path: activationPath
+    }
+  };
+});
+
 ipcMain.handle('accredicore:run-action', async (_event, payload) => {
   const platformKey = getPlatformKey();
   const entry = scriptForAction(platformKey, payload.action);

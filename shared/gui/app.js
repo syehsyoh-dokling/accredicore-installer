@@ -19,7 +19,8 @@
     portDecisions: {},
     envPath: '',
     activationPath: '',
-    activationRequest: null
+    activationRequest: null,
+    downloadPreference: null
   };
 
   function byId(id) {
@@ -103,6 +104,7 @@
     try {
       const preference = await window.accredicore.getDownloadPreference();
       if (!preference || !preference.preferred_location) return;
+      state.downloadPreference = preference;
 
       const locationSelect = byId('project-location');
       if (!locationSelect) return;
@@ -716,7 +718,7 @@
   }
 
   async function openActivationWebsite() {
-    const url = 'https://danandad.com/#activation';
+    const url = 'https://accredicore.danandad.com/#activation';
     if (window.accredicore && typeof window.accredicore.openExternal === 'function') {
       await window.accredicore.openExternal(url);
       return;
@@ -736,10 +738,14 @@
     return Array.from(bytes).map((value) => alphabet[value % alphabet.length]).join('');
   }
 
+  function buildInstallationCode(prefix) {
+    return `ACH-${prefix}-${randomChunk(4)}-${randomChunk(4)}-${randomChunk(4)}`;
+  }
+
   function buildOfflineActivationRequest() {
     const targetDir = String(byId('target-path-preview')?.value || getSelectedBasePath() || '').trim();
     const dbName = String(byId('db-name')?.value || '').trim();
-    const code = `ACH-OFF-${randomChunk(4)}-${randomChunk(4)}-${randomChunk(4)}`;
+    const code = buildInstallationCode('OFF');
 
     return {
       product: 'Arab Compliance Hub',
@@ -749,11 +755,59 @@
       target_directory: targetDir,
       database_name: dbName,
       platform: state.platform,
-      instructions: 'Open https://danandad.com/#activation from another device, enter this installation_code, then download the unique .env and activation.json after vendor approval.'
+      instructions: 'Open https://accredicore.danandad.com/#activation from another device, enter this installation_code, then download the unique .env and activation.json after vendor approval.'
     };
   }
 
-  function showActivationGuidance(mode) {
+  async function requestOnlineActivation() {
+    if (!(window.accredicore && typeof window.accredicore.requestOnlineActivation === 'function')) {
+      appendOutput('ERROR: Online activation requires the native installer runtime.');
+      return null;
+    }
+
+    const preference = state.downloadPreference;
+    const email = String(preference && preference.email ? preference.email : '').trim().toLowerCase();
+    if (!email) {
+      appendOutput('ERROR: Registration email was not found in accredicore-installer-preference.json. Use offline activation and enter the same email used during registration on the vendor website.');
+      return null;
+    }
+
+    const payload = {
+      registration_email: email,
+      institution_name: String((preference && preference.institution_name) || ''),
+      installation_code: buildInstallationCode('ON'),
+      deployment_mode: 'online',
+      platform: state.platform,
+      target_directory: String(byId('target-path-preview')?.value || getSelectedBasePath() || '').trim(),
+      database_name: String(byId('db-name')?.value || '').trim()
+    };
+
+    appendOutput('Step 6 online selected. Sending activation request to https://accredicore.danandad.com/.');
+    appendOutput(`Registration email: ${payload.registration_email}`);
+    appendOutput(`Installation code: ${payload.installation_code}`);
+
+    try {
+      const result = await window.accredicore.requestOnlineActivation(payload);
+      if (result.saved_files) {
+        state.envPath = result.saved_files.env_path;
+        state.activationPath = result.saved_files.activation_json_path;
+        byId('env-file-path').value = state.envPath;
+        byId('activation-file-path').value = state.activationPath;
+      }
+      appendOutput(`Online activation files generated and saved locally.`);
+      appendOutput(`.env: ${state.envPath}`);
+      appendOutput(`activation.json: ${state.activationPath}`);
+      appendOutput('Next: click "Step 6. Import .env and activation.json".');
+      refreshWorkflow();
+      return result;
+    } catch (error) {
+      appendOutput('ERROR: Online activation failed. ' + (error && error.message ? error.message : String(error)));
+      appendOutput('If this device cannot reach the portal, choose "No, this device is offline" and submit the code from another device.');
+      return null;
+    }
+  }
+
+  async function showActivationGuidance(mode) {
     const wrap = byId('activation-guidance');
     const title = byId('activation-guidance-title');
     const text = byId('activation-guidance-text');
@@ -764,20 +818,20 @@
     if (mode === 'online') {
       state.activationRequest = null;
       title.textContent = 'Online activation';
-      text.textContent = 'Use the vendor portal to request or download your unique .env and activation.json for this deployment. Recommended location: a secure vendor portal endpoint, not public GitHub, because these files are customer-specific and must be approved/signed.';
+      text.textContent = 'The installer will send the registration email and installation code to https://accredicore.danandad.com/. If the email is registered, the portal returns a unique signed .env and activation.json for this installation and saves them locally.';
       if (downloadBtn) downloadBtn.style.display = 'none';
-      appendOutput('Step 6 online selected. Opening vendor activation portal for unique .env and activation.json.');
-      openActivationWebsite();
+      await requestOnlineActivation();
       return;
     }
 
     state.activationRequest = buildOfflineActivationRequest();
     title.textContent = 'Offline activation code';
-    text.textContent = `Installation code: ${state.activationRequest.installation_code}. Open https://danandad.com/#activation from another device, enter this code, then download the unique .env and activation.json after vendor approval.`;
+    text.textContent = `Installation code: ${state.activationRequest.installation_code}. Open https://accredicore.danandad.com/#activation from another device. Use the same email used during registration; the portal validates that email before showing the download buttons for .env and activation.json. After both files are downloaded, return to this installer, browse both files, then import them.`;
     if (downloadBtn) downloadBtn.style.display = '';
     appendOutput('Step 6 offline selected.');
     appendOutput(`Offline installation code: ${state.activationRequest.installation_code}`);
-    appendOutput('Open https://danandad.com/#activation from another device and submit this code to request unique .env and activation.json.');
+    appendOutput('Open https://accredicore.danandad.com/#activation from another device.');
+    appendOutput('Use the same email used during registration. If the email is found, the portal will show download buttons for .env and activation.json.');
   }
 
   function downloadActivationRequest() {
