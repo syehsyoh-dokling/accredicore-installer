@@ -15,12 +15,172 @@
     repoValidated: false,
     dbBootstrapCompleted: false,
     configImported: false,
+    serverStarted: false,
+    loginShown: false,
+    language: 'en',
 
     portDecisions: {},
     envPath: '',
     activationPath: '',
     activationRequest: null,
     downloadPreference: null
+  };
+
+  const translations = {
+    en: {
+      heroEyebrow: 'AccrediCore native installer',
+      heroTitle: 'Windows setup console',
+      heroLead: 'The workflow is locked step-by-step: check requirements, install missing dependencies, resolve ports, clone the AccrediCore source, bootstrap the database, import activation configuration, start services, and show login access.',
+      languageLabel: 'Language',
+      platformLabel: 'Platform:',
+      runtimeLabel: 'Runtime:',
+      inputsTitle: 'Inputs',
+      workingDirectory: 'Working directory',
+      gitRemoteUrl: 'Git remote URL',
+      sourceZipPath: 'Source ZIP path (legacy / optional)',
+      actionsTitle: 'Actions',
+      step1Button: 'Step 1. Check requirements',
+      step2Button: 'Step 2. Install dependencies',
+      workflowInitial: 'Step 1 is active. Run "Check requirements" first.',
+      step3Title: 'Step 3 — Port Resolution',
+      step3Lead: 'Review each conflicting port and choose how AccrediCore should handle it.',
+      applyPortDecisions: 'Apply port decisions',
+      step4Title: 'Step 4 — Clone AccrediCore Source',
+      step4Lead: 'Choose where the final source code should be stored, then clone the `accredicore-main` repository. The installer will create the target folder automatically if needed.',
+      recommendedProjectLocation: 'Recommended project location',
+      projectFolderName: 'Project folder name',
+      customBasePath: 'Custom base path',
+      browse: 'Browse',
+      finalTargetPath: 'Final target path preview',
+      cloneRepoButton: 'Step 4. Start clone source code',
+      validateRepoButton: 'Step 4. Validate source code',
+      step4Locked: 'Step 4 is locked until requirement checks and port decisions are complete.',
+      step5Title: 'Step 5 — Create Database and Import Structure',
+      step5Lead: 'After the repository is validated, create the database automatically and import the bundled schema from the cloned AccrediCore project.',
+      dbHost: 'Database host',
+      dbPort: 'Database port',
+      dbName: 'Database name',
+      dbUser: 'Database user',
+      dbPassword: 'Database password',
+      dbPasswordHelp: 'Required. Minimum 8 characters with uppercase, lowercase, number, and symbol such as #, $, &, !, or @.',
+      step5Button: 'Step 5A/5B. Create database, import structure, and test connection',
+      step5Locked: 'Step 5A/5B is locked until repository validation completes.',
+      step6Title: 'Step 6 — Activation Configuration',
+      step6Lead: 'Choose the activation path. If this device has internet, the installer will send an activation request to https://accredicore.danandad.com/ and save the unique `.env` and `activation.json` locally. If this device is offline, generate an offline activation code and submit it from another device using the same email used during registration.',
+      onlineActivationButton: 'Yes, this device is online',
+      offlineActivationButton: 'No, this device is offline',
+      activationGuidanceTitle: 'Activation guidance',
+      openActivationSite: 'Open https://accredicore.danandad.com/#activation',
+      copyPortalUrl: 'Copy portal URL',
+      downloadActivationRequest: 'Download activation-request.json',
+      envFile: '.env file',
+      activationJsonFile: 'activation.json file',
+      step6Button: 'Step 6. Import .env and activation.json',
+      step6Locked: 'Step 6 is locked until database bootstrap completes.',
+      step7Title: 'Step 7 — Start Backend and Frontend',
+      step7Lead: 'After activation configuration succeeds, start the local backend services and the frontend development server.',
+      step7Button: 'Step 7. Run backend and frontend',
+      step7Locked: 'Step 7 is locked until configuration import succeeds.',
+      step8Title: 'Step 8 — Login Access',
+      step8Lead: 'After the servers are running, open the local login URL and use the root account below for the first smoke test.',
+      step8Button: 'Step 8. Show login URL and root account',
+      openLoginUrl: 'Open login URL',
+      loginDetailsTitle: 'Local login details',
+      loginUrlLabel: 'Login URL:',
+      rootUsernameLabel: 'Root username:',
+      rootPasswordLabel: 'Root password:',
+      extraAccountsHint: 'Additional test accounts are available in the manual test guide: quality-manager, department-manager, team-leader, and staff-user.',
+      step8Locked: 'Step 8 is locked until the servers are launched.',
+      outputTitle: 'Output',
+      nextStepKicker: 'Next step',
+      nextValidateRepo: 'Validate source code first',
+      nextBootstrapDatabase: 'Step 5A/5B. Database Set-up',
+      nextImportConfig: 'Step 6. Import configuration',
+      nextStartServers: 'Step 7. Start servers',
+      nextShowLogin: 'Step 8. Show login access',
+      offlineActivationEyebrow: 'Offline activation',
+      offlineActivationModalTitle: 'Use another internet-connected device',
+      offlineActivationModalLead: 'This server/device is marked offline, so it will not open the vendor website automatically. Copy the portal URL below, open it from a phone or another device with internet, then enter the same email used during registration and the installation code shown in Step 6.',
+      vendorPortalUrl: 'Vendor portal URL',
+      iUnderstand: 'I understand'
+    },
+    ar: {
+      heroEyebrow: 'مثبت AccrediCore المحلي',
+      heroTitle: 'وحدة إعداد ويندوز',
+      heroLead: 'سير العمل مقفل خطوة بخطوة: فحص المتطلبات، تثبيت النواقص، معالجة المنافذ، تنزيل المصدر، إعداد قاعدة البيانات، استيراد التفعيل، تشغيل الخدمات، ثم عرض بيانات الدخول.',
+      languageLabel: 'اللغة',
+      platformLabel: 'النظام:',
+      runtimeLabel: 'بيئة التشغيل:',
+      inputsTitle: 'المدخلات',
+      workingDirectory: 'مجلد العمل',
+      gitRemoteUrl: 'رابط مستودع Git',
+      sourceZipPath: 'مسار ملف ZIP اختياري',
+      actionsTitle: 'الإجراءات',
+      step1Button: 'الخطوة 1. فحص المتطلبات',
+      step2Button: 'الخطوة 2. تثبيت المتطلبات',
+      workflowInitial: 'الخطوة 1 فعالة. شغل فحص المتطلبات أولا.',
+      step3Title: 'الخطوة 3 — معالجة المنافذ',
+      step3Lead: 'راجع المنافذ المتعارضة واختر كيف يتعامل معها النظام.',
+      applyPortDecisions: 'تطبيق قرارات المنافذ',
+      step4Title: 'الخطوة 4 — تنزيل مصدر AccrediCore',
+      step4Lead: 'اختر مكان حفظ المصدر النهائي، ثم قم بتنزيل مستودع accredicore-main. سيقوم المثبت بإنشاء المجلد تلقائيا عند الحاجة.',
+      recommendedProjectLocation: 'موقع المشروع المقترح',
+      projectFolderName: 'اسم مجلد المشروع',
+      customBasePath: 'مسار مخصص',
+      browse: 'استعراض',
+      finalTargetPath: 'معاينة المسار النهائي',
+      cloneRepoButton: 'الخطوة 4. بدء تنزيل المصدر',
+      validateRepoButton: 'الخطوة 4. التحقق من المصدر',
+      step4Locked: 'الخطوة 4 مقفلة حتى يكتمل فحص المتطلبات وقرار المنافذ.',
+      step5Title: 'الخطوة 5 — إنشاء قاعدة البيانات واستيراد الهيكل',
+      step5Lead: 'بعد التحقق من المستودع، قم بإنشاء قاعدة البيانات تلقائيا واستيراد الهيكل المرفق.',
+      dbHost: 'مضيف قاعدة البيانات',
+      dbPort: 'منفذ قاعدة البيانات',
+      dbName: 'اسم قاعدة البيانات',
+      dbUser: 'مستخدم قاعدة البيانات',
+      dbPassword: 'كلمة مرور قاعدة البيانات',
+      dbPasswordHelp: 'إلزامي. 8 أحرف على الأقل مع حرف كبير وصغير ورقم ورمز مثل # أو $ أو & أو ! أو @.',
+      step5Button: 'الخطوة 5A/5B. إنشاء قاعدة البيانات والاستيراد واختبار الاتصال',
+      step5Locked: 'الخطوة 5A/5B مقفلة حتى يتم التحقق من المستودع.',
+      step6Title: 'الخطوة 6 — إعداد التفعيل',
+      step6Lead: 'اختر طريقة التفعيل. إذا كان الجهاز متصلا بالإنترنت، سيرسل المثبت طلب التفعيل ويحفظ ملفات .env و activation.json محليا. إذا كان الجهاز غير متصل، أنشئ رمز تفعيل وافتح بوابة المورد من جهاز آخر بنفس البريد المسجل.',
+      onlineActivationButton: 'نعم، هذا الجهاز متصل',
+      offlineActivationButton: 'لا، هذا الجهاز غير متصل',
+      activationGuidanceTitle: 'إرشادات التفعيل',
+      openActivationSite: 'فتح بوابة التفعيل',
+      copyPortalUrl: 'نسخ رابط البوابة',
+      downloadActivationRequest: 'تنزيل activation-request.json',
+      envFile: 'ملف .env',
+      activationJsonFile: 'ملف activation.json',
+      step6Button: 'الخطوة 6. استيراد .env و activation.json',
+      step6Locked: 'الخطوة 6 مقفلة حتى يكتمل إعداد قاعدة البيانات.',
+      step7Title: 'الخطوة 7 — تشغيل الخلفية والواجهة',
+      step7Lead: 'بعد نجاح إعداد التفعيل، شغل خدمات الخلفية وخادم الواجهة المحلي.',
+      step7Button: 'الخطوة 7. تشغيل الخلفية والواجهة',
+      step7Locked: 'الخطوة 7 مقفلة حتى ينجح استيراد الإعدادات.',
+      step8Title: 'الخطوة 8 — بيانات الدخول',
+      step8Lead: 'بعد تشغيل الخوادم، افتح رابط الدخول المحلي واستخدم حساب الجذر لاختبار أولي.',
+      step8Button: 'الخطوة 8. عرض رابط الدخول وحساب الجذر',
+      openLoginUrl: 'فتح رابط الدخول',
+      loginDetailsTitle: 'بيانات الدخول المحلية',
+      loginUrlLabel: 'رابط الدخول:',
+      rootUsernameLabel: 'اسم مستخدم الجذر:',
+      rootPasswordLabel: 'كلمة مرور الجذر:',
+      extraAccountsHint: 'توجد حسابات اختبار إضافية في دليل الاختبار اليدوي: مدير الجودة، مدير القسم، قائد الفريق، والمستخدم العادي.',
+      step8Locked: 'الخطوة 8 مقفلة حتى يتم تشغيل الخوادم.',
+      outputTitle: 'المخرجات',
+      nextStepKicker: 'الخطوة التالية',
+      nextValidateRepo: 'تحقق من المصدر أولا',
+      nextBootstrapDatabase: 'الخطوة 5A/5B. إعداد قاعدة البيانات',
+      nextImportConfig: 'الخطوة 6. استيراد الإعدادات',
+      nextStartServers: 'الخطوة 7. تشغيل الخوادم',
+      nextShowLogin: 'الخطوة 8. عرض بيانات الدخول',
+      offlineActivationEyebrow: 'تفعيل بدون إنترنت',
+      offlineActivationModalTitle: 'استخدم جهازا آخر متصلا بالإنترنت',
+      offlineActivationModalLead: 'تم تحديد هذا الجهاز كغير متصل، لذلك لن يفتح موقع المورد تلقائيا. انسخ رابط البوابة وافتحه من هاتف أو جهاز آخر متصل، ثم أدخل نفس البريد المستخدم عند التسجيل ورمز التثبيت الظاهر في الخطوة 6.',
+      vendorPortalUrl: 'رابط بوابة المورد',
+      iUnderstand: 'فهمت'
+    }
   };
 
   function byId(id) {
@@ -47,6 +207,24 @@
   function setText(id, text) {
     const el = byId(id);
     if (el) el.textContent = text;
+  }
+
+  function translate(key) {
+    const lang = translations[state.language] ? state.language : 'en';
+    return (translations[lang] && translations[lang][key]) || translations.en[key] || key;
+  }
+
+  function applyLanguage(lang) {
+    state.language = translations[lang] ? lang : 'en';
+    document.documentElement.lang = state.language;
+    document.documentElement.dir = state.language === 'ar' ? 'rtl' : 'ltr';
+    document.querySelectorAll('[data-i18n]').forEach((el) => {
+      const key = el.getAttribute('data-i18n');
+      if (!key) return;
+      el.textContent = translate(key);
+    });
+    const select = byId('language-select');
+    if (select) select.value = state.language;
   }
 
   function setWorkflowStatus(text) {
@@ -442,6 +620,8 @@
       state.repoValidated = false;
       state.dbBootstrapCompleted = false;
       state.configImported = false;
+      state.serverStarted = false;
+      state.loginShown = false;
     }
 
     renderPortResolution(report);
@@ -602,6 +782,8 @@
       state.repoValidated = false;
       state.dbBootstrapCompleted = false;
       state.configImported = false;
+      state.serverStarted = false;
+      state.loginShown = false;
       appendOutput('Next: validate the cloned source code, then continue to Step 5 Database Set-up below this output box.');
     }
 
@@ -711,9 +893,66 @@
 
     if (result.code === 0) {
       state.configImported = true;
-      appendOutput('Configuration import completed successfully. Installer flow is now complete.');
+      state.serverStarted = false;
+      state.loginShown = false;
+      appendOutput('Configuration import completed successfully. Step 7 is now unlocked: run backend and frontend.');
     }
 
+    refreshWorkflow();
+  }
+
+  async function startServers() {
+    const targetDir = String(byId('target-path-preview')?.value || getSelectedBasePath() || '').trim();
+    if (!targetDir || !state.configImported) {
+      appendOutput('ERROR: Import .env and activation.json successfully before starting servers.');
+      return;
+    }
+
+    appendOutput('>>> Step 7: Start backend and frontend');
+    const result = await window.accredicore.runAction({
+      action: 'start-servers',
+      targetDir,
+      dbHost: String(byId('db-host')?.value || '').trim(),
+      dbPort: String(byId('db-port')?.value || '').trim(),
+      dbName: String(byId('db-name')?.value || '').trim(),
+      dbUser: String(byId('db-user')?.value || '').trim(),
+      dbPassword: String(byId('db-password')?.value || '')
+    });
+    appendOutput(result.output || JSON.stringify(result, null, 2));
+
+    if (result.code === 0) {
+      state.serverStarted = true;
+      appendOutput('Step 7 completed. Step 8 is now unlocked: show login URL and root account.');
+    }
+
+    refreshWorkflow();
+  }
+
+  async function openLoginUrl() {
+    const url = 'http://127.0.0.1:4173/auth';
+    if (window.accredicore && typeof window.accredicore.openExternal === 'function') {
+      await window.accredicore.openExternal(url);
+      return;
+    }
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
+
+  function showLoginDetails() {
+    if (!state.serverStarted) {
+      appendOutput('ERROR: Start backend and frontend before showing login access.');
+      return;
+    }
+
+    const details = byId('login-details');
+    const openBtn = byId('open-login-url-btn');
+    if (details) details.style.display = '';
+    if (openBtn) openBtn.style.display = '';
+    state.loginShown = true;
+    appendOutput('STEP 8 RESULT');
+    appendOutput('- Login URL: http://127.0.0.1:4173/auth');
+    appendOutput('- Root username: local-admin@accredicore.local');
+    appendOutput('- Root password: LocalAdmin123!');
+    appendOutput('- Additional manual test users: quality-manager@accredicore.local, dept-manager@accredicore.local, team-leader@accredicore.local, staff-user@accredicore.local');
     refreshWorkflow();
   }
 
@@ -900,13 +1139,19 @@
 
     const dbWrap = byId('database-step-wrap');
     const configWrap = byId('config-step-wrap');
+    const serverWrap = byId('server-step-wrap');
+    const loginWrap = byId('login-step-wrap');
     if (dbWrap) dbWrap.style.display = state.repoValidated ? '' : 'none';
     if (configWrap) configWrap.style.display = state.dbBootstrapCompleted ? '' : 'none';
+    if (serverWrap) serverWrap.style.display = state.configImported ? '' : 'none';
+    if (loginWrap) loginWrap.style.display = state.serverStarted ? '' : 'none';
 
     const cloneBtn = byId('clone-repo-btn');
     const validateBtn = byId('validate-repo-btn');
     const dbBtn = byId('bootstrap-database-btn');
     const importBtn = byId('import-config-btn');
+    const startServersBtn = byId('start-servers-btn');
+    const showLoginBtn = byId('show-login-btn');
 
     const targetDir = getSelectedBasePath();
     const locationReady = !!targetDir;
@@ -919,17 +1164,23 @@
       dbBtn.disabled = !(state.repoValidated && postgresReady && dbInputsValid);
     }
     if (importBtn) importBtn.disabled = !(state.dbBootstrapCompleted && state.envPath && state.activationPath);
+    if (startServersBtn) startServersBtn.disabled = !state.configImported;
+    if (showLoginBtn) showLoginBtn.disabled = !state.serverStarted;
 
     refreshNextStepPanel();
 
     const dbStatus = byId('database-step-status');
     const configStatus = byId('config-step-status');
+    const serverStatus = byId('server-step-status');
+    const loginStatus = byId('login-step-status');
 
     if (!state.checkCompleted) {
       setWorkflowStatus('Step 1 is active. Run "Check requirements" first.');
       setGithubStepStatus('Step 4 is locked until requirement checks are complete.');
       if (dbStatus) dbStatus.textContent = 'Step 5 is locked until repository validation completes.';
       if (configStatus) configStatus.textContent = 'Step 6 is locked until database bootstrap completes.';
+      if (serverStatus) serverStatus.textContent = 'Step 7 is locked until configuration import succeeds.';
+      if (loginStatus) loginStatus.textContent = 'Step 8 is locked until the servers are launched.';
       return;
     }
 
@@ -938,14 +1189,18 @@
       setGithubStepStatus('Step 4 is locked until the port decision step is complete.');
       if (dbStatus) dbStatus.textContent = 'Step 5 is locked until repository validation completes.';
       if (configStatus) configStatus.textContent = 'Step 6 is locked until database bootstrap completes.';
+      if (serverStatus) serverStatus.textContent = 'Step 7 is locked until configuration import succeeds.';
+      if (loginStatus) loginStatus.textContent = 'Step 8 is locked until the servers are launched.';
       return;
     }
 
     if (state.dependencyIssues) {
-      setWorkflowStatus('Missing or failed dependencies detected. Run "Install dependencies" before continuing.');
+      setWorkflowStatus('Missing or failed dependencies detected. Clone/download is locked. Run "Install dependencies", then rerun Step 1 Check Requirements before continuing.');
       setGithubStepStatus('Step 4 is locked until all required dependencies pass.');
       if (dbStatus) dbStatus.textContent = 'Step 5 is locked until repository validation completes.';
       if (configStatus) configStatus.textContent = 'Step 6 is locked until database bootstrap completes.';
+      if (serverStatus) serverStatus.textContent = 'Step 7 is locked until configuration import succeeds.';
+      if (loginStatus) loginStatus.textContent = 'Step 8 is locked until the servers are launched.';
       return;
     }
 
@@ -954,6 +1209,8 @@
       setGithubStepStatus('Choose the project location, then click "Step 4. Start clone source code". The installer will create the target folder automatically.');
       if (dbStatus) dbStatus.textContent = 'Step 5 is locked until repository validation completes.';
       if (configStatus) configStatus.textContent = 'Step 6 is locked until database bootstrap completes.';
+      if (serverStatus) serverStatus.textContent = 'Step 7 is locked until configuration import succeeds.';
+      if (loginStatus) loginStatus.textContent = 'Step 8 is locked until the servers are launched.';
       return;
     }
 
@@ -962,6 +1219,8 @@
       setGithubStepStatus('Step 4 is active: validate repository content.');
       if (dbStatus) dbStatus.textContent = 'Step 5 is locked until repository validation completes.';
       if (configStatus) configStatus.textContent = 'Step 6 is locked until database bootstrap completes.';
+      if (serverStatus) serverStatus.textContent = 'Step 7 is locked until configuration import succeeds.';
+      if (loginStatus) loginStatus.textContent = 'Step 8 is locked until the servers are launched.';
       return;
     }
 
@@ -974,6 +1233,8 @@
         ? (dbInputsValid ? 'Provide database connection values, then click "Create database and import structure".' : validateDbInputs())
         : 'PostgreSQL client/server is missing. Run Step 2 Install Dependencies, restart the installer if needed, then run Step 1 check again.';
       if (configStatus) configStatus.textContent = 'Step 6 is locked until database bootstrap completes.';
+      if (serverStatus) serverStatus.textContent = 'Step 7 is locked until configuration import succeeds.';
+      if (loginStatus) loginStatus.textContent = 'Step 8 is locked until the servers are launched.';
       return;
     }
 
@@ -986,13 +1247,37 @@
           ? 'Ready to import configuration files.'
           : 'Open the activation website, then choose the .env file and activation.json file.';
       }
+      if (serverStatus) serverStatus.textContent = 'Step 7 is locked until configuration import succeeds.';
+      if (loginStatus) loginStatus.textContent = 'Step 8 is locked until the servers are launched.';
       return;
     }
 
-    setWorkflowStatus('All workflow steps completed successfully. The cloned AccrediCore project is now prepared for local configuration.');
+    if (!state.serverStarted) {
+      setWorkflowStatus('Configuration files imported successfully. Step 7 is active: start backend and frontend.');
+      setGithubStepStatus('Step 4 completed successfully.');
+      if (dbStatus) dbStatus.textContent = 'Database structure imported successfully.';
+      if (configStatus) configStatus.textContent = 'Configuration files imported successfully.';
+      if (serverStatus) serverStatus.textContent = 'Ready to start backend and frontend services.';
+      if (loginStatus) loginStatus.textContent = 'Step 8 is locked until the servers are launched.';
+      return;
+    }
+
+    if (!state.loginShown) {
+      setWorkflowStatus('Servers were launched. Step 8 is active: show login URL and root account.');
+      setGithubStepStatus('Step 4 completed successfully.');
+      if (dbStatus) dbStatus.textContent = 'Database structure imported successfully.';
+      if (configStatus) configStatus.textContent = 'Configuration files imported successfully.';
+      if (serverStatus) serverStatus.textContent = 'Backend and frontend startup commands were launched.';
+      if (loginStatus) loginStatus.textContent = 'Ready to show login URL and root account.';
+      return;
+    }
+
+    setWorkflowStatus('All workflow steps completed successfully. The local app is ready for browser login testing.');
     setGithubStepStatus('Step 4 completed successfully.');
     if (dbStatus) dbStatus.textContent = 'Database structure imported successfully.';
     if (configStatus) configStatus.textContent = 'Configuration files imported successfully.';
+    if (serverStatus) serverStatus.textContent = 'Backend and frontend startup commands were launched.';
+    if (loginStatus) loginStatus.textContent = 'Login details are visible below.';
   }
 
   function refreshNextStepPanel() {
@@ -1004,8 +1289,10 @@
     const validate = byId('next-validate-repo-btn');
     const db = byId('next-bootstrap-database-btn');
     const config = byId('next-import-config-btn');
+    const servers = byId('next-start-servers-btn');
+    const login = byId('next-show-login-btn');
 
-    [validate, db, config].forEach((btn) => {
+    [validate, db, config, servers, login].forEach((btn) => {
       if (btn) btn.style.display = 'none';
     });
 
@@ -1037,6 +1324,22 @@
       return;
     }
 
+    if (state.configImported && !state.serverStarted) {
+      panel.style.display = '';
+      if (title) title.textContent = 'Step 7 — Start Backend and Frontend';
+      if (text) text.textContent = 'Configuration import succeeded. Start local backend services and the frontend development server.';
+      if (servers) servers.style.display = '';
+      return;
+    }
+
+    if (state.serverStarted && !state.loginShown) {
+      panel.style.display = '';
+      if (title) title.textContent = 'Step 8 — Login Access';
+      if (text) text.textContent = 'Servers were launched. Show the local login URL and root account for smoke testing.';
+      if (login) login.style.display = '';
+      return;
+    }
+
     panel.style.display = 'none';
   }
 
@@ -1052,6 +1355,12 @@
   async function init() {
     const platform = await detectPlatform();
     await loadHomeInfo();
+
+    const languageSelect = byId('language-select');
+    if (languageSelect) {
+      languageSelect.addEventListener('change', () => applyLanguage(languageSelect.value));
+    }
+    applyLanguage('en');
 
     setText('platform-name', platform);
     setText('runtime-name', state.runtime);
@@ -1101,9 +1410,14 @@
     const activationOnlineBtn = byId('activation-online-btn');
     const activationOfflineBtn = byId('activation-offline-btn');
     const downloadActivationRequestBtn = byId('download-activation-request-btn');
+    const startServersBtn = byId('start-servers-btn');
+    const showLoginBtn = byId('show-login-btn');
+    const openLoginUrlBtn = byId('open-login-url-btn');
     const nextValidateRepoBtn = byId('next-validate-repo-btn');
     const nextBootstrapDatabaseBtn = byId('next-bootstrap-database-btn');
     const nextImportConfigBtn = byId('next-import-config-btn');
+    const nextStartServersBtn = byId('next-start-servers-btn');
+    const nextShowLoginBtn = byId('next-show-login-btn');
 
     if (cloneBtn) cloneBtn.addEventListener('click', cloneRepo);
     if (validateBtn) validateBtn.addEventListener('click', validateRepo);
@@ -1125,10 +1439,21 @@
     if (activationOnlineBtn) activationOnlineBtn.addEventListener('click', () => showActivationGuidance('online'));
     if (activationOfflineBtn) activationOfflineBtn.addEventListener('click', () => showActivationGuidance('offline'));
     if (downloadActivationRequestBtn) downloadActivationRequestBtn.addEventListener('click', downloadActivationRequest);
+    if (startServersBtn) startServersBtn.addEventListener('click', startServers);
+    if (showLoginBtn) showLoginBtn.addEventListener('click', showLoginDetails);
+    if (openLoginUrlBtn) openLoginUrlBtn.addEventListener('click', openLoginUrl);
     if (nextValidateRepoBtn) nextValidateRepoBtn.addEventListener('click', validateRepo);
     if (nextBootstrapDatabaseBtn) nextBootstrapDatabaseBtn.addEventListener('click', bootstrapDatabase);
     if (nextImportConfigBtn) nextImportConfigBtn.addEventListener('click', () => {
       const wrap = byId('config-step-wrap');
+      if (wrap) wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    if (nextStartServersBtn) nextStartServersBtn.addEventListener('click', () => {
+      const wrap = byId('server-step-wrap');
+      if (wrap) wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    if (nextShowLoginBtn) nextShowLoginBtn.addEventListener('click', () => {
+      const wrap = byId('login-step-wrap');
       if (wrap) wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
 

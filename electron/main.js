@@ -46,6 +46,7 @@ function scriptForAction(platformKey, action) {
       'validate-repo': ['powershell.exe', ['-ExecutionPolicy', 'Bypass', '-File', path.join(base, 'windows/bootstrap/Step3-ValidateRepository.ps1')]],
       'bootstrap-database': ['powershell.exe', ['-ExecutionPolicy', 'Bypass', '-File', path.join(base, 'windows/bootstrap/Step4-BootstrapDatabase.ps1')]],
       'import-config': ['powershell.exe', ['-ExecutionPolicy', 'Bypass', '-File', path.join(base, 'windows/bootstrap/Step5-ImportActivationConfig.ps1')]],
+      'start-servers': ['powershell.exe', ['-ExecutionPolicy', 'Bypass', '-File', path.join(base, 'windows/bootstrap/Step6-StartLocalServers.ps1')]],
       git: ['powershell.exe', ['-ExecutionPolicy', 'Bypass', '-File', path.join(base, 'windows/bootstrap/Step3-CommitAndPushProject.ps1')]],
       build: ['cmd.exe', ['/c', 'npm', 'run', 'dist:win']],
       'stop-process': ['powershell.exe', ['-ExecutionPolicy', 'Bypass', '-File', path.join(base, 'windows/bootstrap/Stop-ProcessByPid.ps1')]]
@@ -99,6 +100,14 @@ function addDynamicArgs(platformKey, action, args, payload) {
       if (payload.targetDir) next.push('-ProjectRoot', payload.targetDir);
       if (payload.envPath) next.push('-EnvSourcePath', payload.envPath);
       if (payload.activationPath) next.push('-ActivationSourcePath', payload.activationPath);
+    }
+    if (action === 'start-servers') {
+      if (payload.targetDir) next.push('-ProjectRoot', payload.targetDir);
+      if (payload.dbHost) next.push('-DbHost', payload.dbHost);
+      if (payload.dbPort) next.push('-DbPort', String(payload.dbPort));
+      if (payload.dbName) next.push('-DbName', payload.dbName);
+      if (payload.dbUser) next.push('-DbUser', payload.dbUser);
+      if (payload.dbPassword !== undefined) next.push('-DbPassword', payload.dbPassword);
     }
     if (action === 'stop-process' && payload.pid) {
       next.push('-Pid', payload.pid);

@@ -51,6 +51,16 @@ h1, h2, h3 { margin-top: 0; }
 }
 .status-pill.secondary { background: rgba(137,240,200,.12); border-color: rgba(137,240,200,.35); }
 .hero-meta { display: flex; flex-direction: column; gap: 10px; align-items: end; }
+.language-pill { gap: 10px; }
+.language-select {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(255,255,255,.08);
+  color: var(--text);
+  padding: 6px 10px;
+  font-weight: 700;
+}
+.language-select option { color: #111827; }
 .os-cards { display: grid; gap: 12px; }
 .os-card { padding: 16px; border-radius: 18px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); }
 .os-card.active { border-color: rgba(78,168,255,.45); box-shadow: inset 0 0 0 1px rgba(78,168,255,.18); }

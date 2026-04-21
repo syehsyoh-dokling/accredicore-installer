@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -10,60 +10,67 @@
   <div class="page-shell">
     <header class="hero-card">
       <div>
-        <p class="eyebrow">AccrediCore native installer</p>
-        <h1>Windows setup console</h1>
-        <p class="lead">The workflow is locked step-by-step: check requirements, install missing dependencies, resolve ports, clone the AccrediCore source, bootstrap the database, and import the activation configuration.</p>
+        <p class="eyebrow" data-i18n="heroEyebrow">AccrediCore native installer</p>
+        <h1 data-i18n="heroTitle">Windows setup console</h1>
+        <p class="lead" data-i18n="heroLead">The workflow is locked step-by-step: check requirements, install missing dependencies, resolve ports, clone the AccrediCore source, bootstrap the database, import activation configuration, start services, and show login access.</p>
       </div>
       <div class="hero-meta">
-        <div class="status-pill">Platform: <span id="platform-name">windows</span></div>
-        <div class="status-pill secondary">Runtime: <span id="runtime-name">browser</span></div>
+        <div class="status-pill language-pill">
+          <span data-i18n="languageLabel">Language</span>
+          <select class="language-select" id="language-select" aria-label="Installer language">
+            <option value="en">English</option>
+            <option value="ar">العربية</option>
+          </select>
+        </div>
+        <div class="status-pill"><span data-i18n="platformLabel">Platform:</span> <span id="platform-name">windows</span></div>
+        <div class="status-pill secondary"><span data-i18n="runtimeLabel">Runtime:</span> <span id="runtime-name">browser</span></div>
       </div>
     </header>
 
     <main class="grid two-columns">
       <section class="card stack-gap">
-        <h2>Inputs</h2>
+        <h2 data-i18n="inputsTitle">Inputs</h2>
         <div class="kv-grid">
           <div>
-            <div class="label">Working directory</div>
+            <div class="label" data-i18n="workingDirectory">Working directory</div>
             <input class="input" id="working-directory" value="C:\AccrediCore" />
           </div>
           <div>
-            <div class="label">Git remote URL</div>
+            <div class="label" data-i18n="gitRemoteUrl">Git remote URL</div>
             <input class="input" id="remote-url" value="https://github.com/syehsyoh-dokling/accredicore-main.git" />
           </div>
           <div style="grid-column: 1 / -1;">
-            <div class="label">Source ZIP path (legacy / optional)</div>
+            <div class="label" data-i18n="sourceZipPath">Source ZIP path (legacy / optional)</div>
             <input class="input" id="source-zip" value="" />
           </div>
         </div>
       </section>
 
       <section class="card stack-gap">
-        <h2>Actions</h2>
+        <h2 data-i18n="actionsTitle">Actions</h2>
         <div class="button-row wrap">
-          <button class="btn primary" data-action="check">Step 1. Check requirements</button>
-          <button class="btn secondary" data-action="install" style="display:none;">Step 2. Install dependencies</button>
+          <button class="btn primary" data-action="check" data-i18n="step1Button">Step 1. Check requirements</button>
+          <button class="btn secondary" data-action="install" style="display:none;" data-i18n="step2Button">Step 2. Install dependencies</button>
         </div>
-        <p class="lead" id="workflow-status">Step 1 is active. Run "Check requirements" first.</p>
+        <p class="lead" id="workflow-status" data-i18n="workflowInitial">Step 1 is active. Run "Check requirements" first.</p>
       </section>
 
       <section class="card stack-gap" id="port-resolution-wrap" style="grid-column: 1 / -1; display:none;">
-        <h2>Step 3 — Port Resolution</h2>
-        <p class="lead">Review each conflicting port and choose how AccrediCore should handle it.</p>
+        <h2 data-i18n="step3Title">Step 3 — Port Resolution</h2>
+        <p class="lead" data-i18n="step3Lead">Review each conflicting port and choose how AccrediCore should handle it.</p>
         <div id="port-resolution-body"></div>
         <div class="button-row wrap">
-          <button class="btn primary" id="apply-port-decisions" disabled>Apply port decisions</button>
+          <button class="btn primary" id="apply-port-decisions" disabled data-i18n="applyPortDecisions">Apply port decisions</button>
         </div>
       </section>
 
       <section class="card stack-gap" id="github-step-wrap" style="grid-column: 1 / -1; display:none;">
-        <h2>Step 4 — Clone AccrediCore Source</h2>
-        <p class="lead">Choose where the final source code should be stored, then clone the `accredicore-main` repository. The installer will create the target folder automatically if needed.</p>
+        <h2 data-i18n="step4Title">Step 4 — Clone AccrediCore Source</h2>
+        <p class="lead" data-i18n="step4Lead">Choose where the final source code should be stored, then clone the `accredicore-main` repository. The installer will create the target folder automatically if needed.</p>
 
         <div class="kv-grid">
           <div>
-            <div class="label">Recommended project location</div>
+            <div class="label" data-i18n="recommendedProjectLocation">Recommended project location</div>
             <select class="input" id="project-location">
               <option value="documents">Documents</option>
               <option value="desktop">Desktop</option>
@@ -75,135 +82,152 @@
           </div>
 
           <div>
-            <div class="label">Project folder name</div>
+            <div class="label" data-i18n="projectFolderName">Project folder name</div>
             <input class="input" id="project-folder-name" value="AccrediCore" />
           </div>
 
           <div id="custom-location-wrap" style="grid-column: 1 / -1; display:none;">
-            <div class="label">Custom base path</div>
+            <div class="label" data-i18n="customBasePath">Custom base path</div>
             <div class="button-row wrap">
               <input class="input" id="custom-base-path" style="flex:1;" value="" />
-              <button class="btn secondary" id="browse-custom-folder" type="button">Browse</button>
+              <button class="btn secondary" id="browse-custom-folder" type="button" data-i18n="browse">Browse</button>
             </div>
           </div>
 
           <div style="grid-column: 1 / -1;">
-            <div class="label">Final target path preview</div>
+            <div class="label" data-i18n="finalTargetPath">Final target path preview</div>
             <input class="input" id="target-path-preview" readonly value="C:\Users\Saifuddin\Documents\AccrediCore" />
           </div>
         </div>
 
         <div class="button-row wrap">
-          <button class="btn primary" id="clone-repo-btn" disabled>Step 4. Start clone source code</button>
-          <button class="btn secondary" id="validate-repo-btn" disabled>Step 4. Validate source code</button>
+          <button class="btn primary" id="clone-repo-btn" disabled data-i18n="cloneRepoButton">Step 4. Start clone source code</button>
+          <button class="btn secondary" id="validate-repo-btn" disabled data-i18n="validateRepoButton">Step 4. Validate source code</button>
         </div>
 
-        <p class="lead" id="github-step-status">Step 4 is locked until requirement checks and port decisions are complete.</p>
+        <p class="lead" id="github-step-status" data-i18n="step4Locked">Step 4 is locked until requirement checks and port decisions are complete.</p>
       </section>
 
       <section class="card stack-gap" id="database-step-wrap" style="grid-column: 1 / -1; display:none;">
-        <h2>Step 5 — Create Database and Import Structure</h2>
-        <p class="lead">After the repository is validated, create the database automatically and import the bundled schema from the cloned AccrediCore project.</p>
+        <h2 data-i18n="step5Title">Step 5 — Create Database and Import Structure</h2>
+        <p class="lead" data-i18n="step5Lead">After the repository is validated, create the database automatically and import the bundled schema from the cloned AccrediCore project.</p>
 
         <div class="kv-grid">
           <div>
-            <div class="label">Database host</div>
+            <div class="label" data-i18n="dbHost">Database host</div>
             <input class="input" id="db-host" value="127.0.0.1" maxlength="253" pattern="[A-Za-z0-9._-]{1,253}" autocomplete="off" />
           </div>
           <div>
-            <div class="label">Database port</div>
+            <div class="label" data-i18n="dbPort">Database port</div>
             <input class="input" id="db-port" value="5432" type="number" inputmode="numeric" min="1" max="65535" step="1" />
           </div>
           <div>
-            <div class="label">Database name</div>
+            <div class="label" data-i18n="dbName">Database name</div>
             <input class="input" id="db-name" value="accredicore" maxlength="63" pattern="[a-z][a-z0-9_]{0,62}" autocomplete="off" />
           </div>
           <div>
-            <div class="label">Database user</div>
+            <div class="label" data-i18n="dbUser">Database user</div>
             <input class="input" id="db-user" value="postgres" maxlength="63" pattern="[a-z][a-z0-9_]{0,62}" autocomplete="username" />
           </div>
           <div style="grid-column: 1 / -1;">
-            <div class="label">Database password <span aria-hidden="true">*</span></div>
-            <input
-              class="input"
-              id="db-password"
-              type="password"
-              value=""
-              required
-              minlength="8"
-              maxlength="256"
-              pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,256}"
-              autocomplete="current-password"
-              aria-describedby="db-password-help"
-            />
-            <p class="form-help" id="db-password-help">Required. Minimum 8 characters with uppercase, lowercase, number, and symbol such as #, $, &, !, or @.</p>
+            <div class="label"><span data-i18n="dbPassword">Database password</span> <span aria-hidden="true">*</span></div>
+            <input class="input" id="db-password" type="password" value="" required minlength="8" maxlength="256" pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,256}" autocomplete="current-password" aria-describedby="db-password-help" />
+            <p class="form-help" id="db-password-help" data-i18n="dbPasswordHelp">Required. Minimum 8 characters with uppercase, lowercase, number, and symbol such as #, $, &, !, or @.</p>
           </div>
         </div>
 
         <div class="button-row wrap">
-          <button class="btn primary" id="bootstrap-database-btn" disabled>Step 5A/5B. Create database, import structure, and test connection</button>
+          <button class="btn primary" id="bootstrap-database-btn" disabled data-i18n="step5Button">Step 5A/5B. Create database, import structure, and test connection</button>
         </div>
 
-        <p class="lead" id="database-step-status">Step 5A/5B is locked until repository validation completes.</p>
+        <p class="lead" id="database-step-status" data-i18n="step5Locked">Step 5A/5B is locked until repository validation completes.</p>
       </section>
 
       <section class="card stack-gap" id="config-step-wrap" style="grid-column: 1 / -1; display:none;">
-        <h2>Step 6 — Activation Configuration</h2>
-        <p class="lead">Choose the activation path. If this device has internet, the installer will send an activation request to https://accredicore.danandad.com/ and save the unique `.env` and `activation.json` locally. If this device is offline, generate an offline activation code and submit it from another device using the same email used during registration.</p>
+        <h2 data-i18n="step6Title">Step 6 — Activation Configuration</h2>
+        <p class="lead" data-i18n="step6Lead">Choose the activation path. If this device has internet, the installer will send an activation request to https://accredicore.danandad.com/ and save the unique `.env` and `activation.json` locally. If this device is offline, generate an offline activation code and submit it from another device using the same email used during registration.</p>
 
         <div class="button-row wrap">
-          <button class="btn primary" id="activation-online-btn" type="button">Yes, this device is online</button>
-          <button class="btn secondary" id="activation-offline-btn" type="button">No, this device is offline</button>
+          <button class="btn primary" id="activation-online-btn" type="button" data-i18n="onlineActivationButton">Yes, this device is online</button>
+          <button class="btn secondary" id="activation-offline-btn" type="button" data-i18n="offlineActivationButton">No, this device is offline</button>
         </div>
 
         <div class="next-step-panel" id="activation-guidance" style="display:none;">
-          <h3 id="activation-guidance-title">Activation guidance</h3>
+          <h3 id="activation-guidance-title" data-i18n="activationGuidanceTitle">Activation guidance</h3>
           <p class="lead" id="activation-guidance-text"></p>
           <div class="button-row wrap">
-            <button class="btn secondary" id="open-activation-site-btn" type="button">Open https://accredicore.danandad.com/#activation</button>
-            <button class="btn secondary" id="copy-activation-url-btn" type="button" style="display:none;">Copy portal URL</button>
-            <button class="btn secondary" id="download-activation-request-btn" type="button" style="display:none;">Download activation-request.json</button>
+            <button class="btn secondary" id="open-activation-site-btn" type="button" data-i18n="openActivationSite">Open https://accredicore.danandad.com/#activation</button>
+            <button class="btn secondary" id="copy-activation-url-btn" type="button" style="display:none;" data-i18n="copyPortalUrl">Copy portal URL</button>
+            <button class="btn secondary" id="download-activation-request-btn" type="button" style="display:none;" data-i18n="downloadActivationRequest">Download activation-request.json</button>
           </div>
         </div>
 
         <div class="kv-grid">
           <div style="grid-column: 1 / -1;">
-            <div class="label">.env file</div>
+            <div class="label" data-i18n="envFile">.env file</div>
             <div class="button-row wrap">
               <input class="input" id="env-file-path" style="flex:1;" readonly value="" />
-              <button class="btn secondary" id="browse-env-btn" type="button">Browse</button>
+              <button class="btn secondary" id="browse-env-btn" type="button" data-i18n="browse">Browse</button>
             </div>
           </div>
           <div style="grid-column: 1 / -1;">
-            <div class="label">activation.json file</div>
+            <div class="label" data-i18n="activationJsonFile">activation.json file</div>
             <div class="button-row wrap">
               <input class="input" id="activation-file-path" style="flex:1;" readonly value="" />
-              <button class="btn secondary" id="browse-activation-btn" type="button">Browse</button>
+              <button class="btn secondary" id="browse-activation-btn" type="button" data-i18n="browse">Browse</button>
             </div>
           </div>
         </div>
 
         <div class="button-row wrap">
-          <button class="btn primary" id="import-config-btn" disabled>Step 6. Import .env and activation.json</button>
+          <button class="btn primary" id="import-config-btn" disabled data-i18n="step6Button">Step 6. Import .env and activation.json</button>
         </div>
 
-        <p class="lead" id="config-step-status">Step 6 is locked until database bootstrap completes.</p>
+        <p class="lead" id="config-step-status" data-i18n="step6Locked">Step 6 is locked until database bootstrap completes.</p>
+      </section>
+
+      <section class="card stack-gap" id="server-step-wrap" style="grid-column: 1 / -1; display:none;">
+        <h2 data-i18n="step7Title">Step 7 — Start Backend and Frontend</h2>
+        <p class="lead" data-i18n="step7Lead">After activation configuration succeeds, start the local backend services and the frontend development server.</p>
+        <div class="button-row wrap">
+          <button class="btn primary" id="start-servers-btn" type="button" disabled data-i18n="step7Button">Step 7. Run backend and frontend</button>
+        </div>
+        <p class="lead" id="server-step-status" data-i18n="step7Locked">Step 7 is locked until configuration import succeeds.</p>
+      </section>
+
+      <section class="card stack-gap" id="login-step-wrap" style="grid-column: 1 / -1; display:none;">
+        <h2 data-i18n="step8Title">Step 8 — Login Access</h2>
+        <p class="lead" data-i18n="step8Lead">After the servers are running, open the local login URL and use the root account below for the first smoke test.</p>
+        <div class="button-row wrap">
+          <button class="btn primary" id="show-login-btn" type="button" disabled data-i18n="step8Button">Step 8. Show login URL and root account</button>
+          <button class="btn secondary" id="open-login-url-btn" type="button" style="display:none;" data-i18n="openLoginUrl">Open login URL</button>
+        </div>
+        <div class="next-step-panel" id="login-details" style="display:none;">
+          <h3 data-i18n="loginDetailsTitle">Local login details</h3>
+          <p class="lead"><span data-i18n="loginUrlLabel">Login URL:</span> <code>http://127.0.0.1:4173/auth</code></p>
+          <p class="lead"><span data-i18n="rootUsernameLabel">Root username:</span> <code>local-admin@accredicore.local</code></p>
+          <p class="lead"><span data-i18n="rootPasswordLabel">Root password:</span> <code>LocalAdmin123!</code></p>
+          <p class="lead" data-i18n="extraAccountsHint">Additional test accounts are available in the manual test guide: quality-manager, department-manager, team-leader, and staff-user.</p>
+        </div>
+        <p class="lead" id="login-step-status" data-i18n="step8Locked">Step 8 is locked until the servers are launched.</p>
       </section>
 
       <section class="card stack-gap" style="grid-column: 1 / -1;">
-        <h2>Output</h2>
+        <h2 data-i18n="outputTitle">Output</h2>
         <textarea id="command-output" class="output-box" spellcheck="false">AccrediCore Windows installer ready.
 </textarea>
         <div class="next-step-panel" id="next-step-panel" style="display:none;">
           <div>
-            <p class="eyebrow" id="next-step-kicker">Next step</p>
+            <p class="eyebrow" id="next-step-kicker" data-i18n="nextStepKicker">Next step</p>
             <h3 id="next-step-title">Step 5A/5B — Database Set-up</h3>
             <p class="lead" id="next-step-text">Create the database, import the table structure from the cloned repository, and test the connection.</p>
           </div>
           <div class="button-row wrap">
-            <button class="btn secondary" id="next-validate-repo-btn" type="button" style="display:none;">Validate source code first</button>
-            <button class="btn primary" id="next-bootstrap-database-btn" type="button" style="display:none;">Step 5A/5B. Database Set-up</button>
-            <button class="btn secondary" id="next-import-config-btn" type="button" style="display:none;">Step 6. Import configuration</button>
+            <button class="btn secondary" id="next-validate-repo-btn" type="button" style="display:none;" data-i18n="nextValidateRepo">Validate source code first</button>
+            <button class="btn primary" id="next-bootstrap-database-btn" type="button" style="display:none;" data-i18n="nextBootstrapDatabase">Step 5A/5B. Database Set-up</button>
+            <button class="btn secondary" id="next-import-config-btn" type="button" style="display:none;" data-i18n="nextImportConfig">Step 6. Import configuration</button>
+            <button class="btn secondary" id="next-start-servers-btn" type="button" style="display:none;" data-i18n="nextStartServers">Step 7. Start servers</button>
+            <button class="btn secondary" id="next-show-login-btn" type="button" style="display:none;" data-i18n="nextShowLogin">Step 8. Show login access</button>
           </div>
         </div>
       </section>
@@ -213,20 +237,17 @@
   <div class="modal-backdrop" id="offline-activation-modal" hidden>
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="offline-activation-modal-title">
       <button class="modal-close" id="close-offline-activation-modal-btn" type="button" aria-label="Close offline activation instructions">&times;</button>
-      <p class="eyebrow">Offline activation</p>
-      <h2 id="offline-activation-modal-title">Use another internet-connected device</h2>
-      <p class="lead">
-        This server/device is marked offline, so it will not open the vendor website automatically.
-        Copy the portal URL below, open it from a phone or another device with internet, then enter the same email used during registration and the installation code shown in Step 6.
-      </p>
+      <p class="eyebrow" data-i18n="offlineActivationEyebrow">Offline activation</p>
+      <h2 id="offline-activation-modal-title" data-i18n="offlineActivationModalTitle">Use another internet-connected device</h2>
+      <p class="lead" data-i18n="offlineActivationModalLead">This server/device is marked offline, so it will not open the vendor website automatically. Copy the portal URL below, open it from a phone or another device with internet, then enter the same email used during registration and the installation code shown in Step 6.</p>
       <div class="next-step-panel">
-        <div class="label">Vendor portal URL</div>
+        <div class="label" data-i18n="vendorPortalUrl">Vendor portal URL</div>
         <code id="offline-activation-url">https://accredicore.danandad.com/#activation</code>
       </div>
       <div class="button-row wrap">
-        <button class="btn primary" id="modal-copy-activation-url-btn" type="button">Copy portal URL</button>
-        <button class="btn secondary" id="modal-download-activation-request-btn" type="button">Download activation-request.json</button>
-        <button class="btn ghost" id="modal-close-secondary-btn" type="button">I understand</button>
+        <button class="btn primary" id="modal-copy-activation-url-btn" type="button" data-i18n="copyPortalUrl">Copy portal URL</button>
+        <button class="btn secondary" id="modal-download-activation-request-btn" type="button" data-i18n="downloadActivationRequest">Download activation-request.json</button>
+        <button class="btn ghost" id="modal-close-secondary-btn" type="button" data-i18n="iUnderstand">I understand</button>
       </div>
     </div>
   </div>
