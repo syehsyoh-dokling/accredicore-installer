@@ -123,8 +123,20 @@
             <input class="input" id="db-user" value="postgres" maxlength="63" pattern="[a-z][a-z0-9_]{0,62}" autocomplete="username" />
           </div>
           <div style="grid-column: 1 / -1;">
-            <div class="label">Database password</div>
-            <input class="input" id="db-password" type="password" value="" maxlength="256" autocomplete="current-password" />
+            <div class="label">Database password <span aria-hidden="true">*</span></div>
+            <input
+              class="input"
+              id="db-password"
+              type="password"
+              value=""
+              required
+              minlength="8"
+              maxlength="256"
+              pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,256}"
+              autocomplete="current-password"
+              aria-describedby="db-password-help"
+            />
+            <p class="form-help" id="db-password-help">Required. Minimum 8 characters with uppercase, lowercase, number, and symbol such as #, $, &, !, or @.</p>
           </div>
         </div>
 

@@ -175,8 +175,12 @@
       return 'Database user must start with a lowercase letter and use only lowercase letters, numbers, and underscore, max 63 characters.';
     }
 
-    if (dbPassword.length > 256) {
-      return 'Database password must be 256 characters or fewer.';
+    if (dbPassword.length < 8 || dbPassword.length > 256) {
+      return 'Database password is required and must be 8-256 characters.';
+    }
+
+    if (!/[a-z]/.test(dbPassword) || !/[A-Z]/.test(dbPassword) || !/\d/.test(dbPassword) || !/[^A-Za-z0-9]/.test(dbPassword)) {
+      return 'Database password must include uppercase, lowercase, number, and symbol such as #, $, &, !, or @.';
     }
 
     return '';

@@ -27,8 +27,12 @@ function Assert-DbInput {
     throw "Invalid database user. Use lowercase letters, numbers, and underscore only; start with a letter; max 63 characters."
   }
 
-  if ($DbPassword.Length -gt 256) {
-    throw "Invalid database password. Max length is 256 characters."
+  if ([string]::IsNullOrWhiteSpace($DbPassword) -or $DbPassword.Length -lt 8 -or $DbPassword.Length -gt 256) {
+    throw "Invalid database password. Password is required and must be 8-256 characters."
+  }
+
+  if (($DbPassword -notmatch '[a-z]') -or ($DbPassword -notmatch '[A-Z]') -or ($DbPassword -notmatch '\d') -or ($DbPassword -notmatch '[^A-Za-z0-9]')) {
+    throw "Invalid database password. Use uppercase, lowercase, number, and symbol such as #, $, &, !, or @."
   }
 }
 
