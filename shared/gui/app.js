@@ -96,7 +96,8 @@
       step8Lead: 'After the servers are running, open the local login URL and use the root account below for the first smoke test.',
       step8Button: 'Step 8. Show login URL and root account',
       openLoginUrl: 'Click here to open login page',
-      loginDetailsTitle: 'Local login details',
+      loginDetailsTitle: 'Local login details (Please copy manual and paste in your permanent document)',
+      copyLoginDetails: 'Copy login details',
       loginUrlLabel: 'Login URL:',
       rootUsernameLabel: 'Your username:',
       rootPasswordLabel: 'Your password:',
@@ -188,7 +189,8 @@
       step8Lead: 'بعد تشغيل الخوادم، افتح رابط الدخول المحلي واستخدم حساب الجذر لاختبار أولي.',
       step8Button: 'الخطوة 8. عرض رابط الدخول وحساب الجذر',
       openLoginUrl: 'اضغط هنا لفتح صفحة الدخول',
-      loginDetailsTitle: 'بيانات الدخول المحلية',
+      loginDetailsTitle: 'بيانات الدخول المحلية (يرجى نسخها وحفظها في مستند دائم)',
+      copyLoginDetails: 'نسخ بيانات الدخول',
       loginUrlLabel: 'رابط الدخول:',
       rootUsernameLabel: 'اسم المستخدم:',
       rootPasswordLabel: 'كلمة المرور:',
@@ -1161,22 +1163,47 @@
     const details = byId('login-details');
     const openBtn = byId('open-login-url-btn');
     const loginUrlValue = byId('login-url-value');
+    const usernameValue = byId('root-username-value');
+    const passwordValue = byId('root-password-value');
     const frontendPort = state.portPlan && state.portPlan.frontend ? state.portPlan.frontend : 4173;
     const loginUrl = `http://127.0.0.1:${frontendPort}/auth`;
     if (details) details.style.display = '';
     if (openBtn) openBtn.style.display = '';
     if (loginUrlValue) loginUrlValue.textContent = loginUrl;
+    if (usernameValue) usernameValue.textContent = '@root';
+    if (passwordValue) passwordValue.textContent = "I'mTheR00t#";
     const loginStatus = byId('login-step-status');
     if (loginStatus) loginStatus.style.display = 'none';
     state.loginShown = true;
     appendOutput('STEP 8 RESULT');
     appendOutput(`- Click here to open login page: ${loginUrl}`);
-    appendOutput('- Your username: local-admin@accredicore.local');
-    appendOutput('- Your password: LocalAdmin123!');
+    appendOutput('- Your username: @root');
+    appendOutput("- Your password: I'mTheR00t#");
     appendOutput('- Please copy/paste this credential to login into your superadmin (root) account and start creating other accounts.');
     appendOutput('- If the browser says connection refused, wait 2-3 minutes and reload after the frontend terminal shows the local URL.');
     appendOutput('- Additional manual test users: quality-manager@accredicore.local, dept-manager@accredicore.local, team-leader@accredicore.local, staff-user@accredicore.local');
     refreshWorkflow();
+  }
+
+  async function copyLoginDetails() {
+    const frontendPort = state.portPlan && state.portPlan.frontend ? state.portPlan.frontend : 4173;
+    const loginUrl = `http://127.0.0.1:${frontendPort}/auth`;
+    const text = [
+      'Arab Compliance Hub - Local Login Details',
+      `Login URL: ${loginUrl}`,
+      'Your username: @root',
+      "Your password: I'mTheR00t#",
+      '',
+      'Please use copy/paste for this credential to login into your superadmin (root) account and start creating other accounts.'
+    ].join('\n');
+
+    if (window.accredicore && typeof window.accredicore.copyText === 'function') {
+      await window.accredicore.copyText(text);
+    } else if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text);
+    }
+
+    appendOutput('Login details copied to clipboard.');
   }
 
   async function openActivationWebsite() {
@@ -1696,6 +1723,7 @@
     const startServersBtn = byId('start-servers-btn');
     const showLoginBtn = byId('show-login-btn');
     const openLoginUrlBtn = byId('open-login-url-btn');
+    const copyLoginDetailsBtn = byId('copy-login-details-btn');
     const nextValidateRepoBtn = byId('next-validate-repo-btn');
     const nextBootstrapDatabaseBtn = byId('next-bootstrap-database-btn');
     const nextImportConfigBtn = byId('next-import-config-btn');
@@ -1726,6 +1754,7 @@
     if (startServersBtn) startServersBtn.addEventListener('click', startServers);
     if (showLoginBtn) showLoginBtn.addEventListener('click', showLoginDetails);
     if (openLoginUrlBtn) openLoginUrlBtn.addEventListener('click', openLoginUrl);
+    if (copyLoginDetailsBtn) copyLoginDetailsBtn.addEventListener('click', copyLoginDetails);
     if (nextValidateRepoBtn) nextValidateRepoBtn.addEventListener('click', validateRepo);
     if (nextBootstrapDatabaseBtn) nextBootstrapDatabaseBtn.addEventListener('click', bootstrapDatabase);
     if (nextImportConfigBtn) nextImportConfigBtn.addEventListener('click', () => {

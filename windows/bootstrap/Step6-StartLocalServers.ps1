@@ -245,7 +245,7 @@ try {
 Write-Host "- Opening backend and frontend service windows."
 Start-NamedPowerShell -Title "AccrediCore Supabase Edge Functions" -WorkingDirectory $appSource -Command "npx supabase functions serve"
 Start-NamedPowerShell -Title "AccrediCore Local API" -WorkingDirectory $localApi -Command "npm start"
-Start-NamedPowerShell -Title "AccrediCore Frontend" -WorkingDirectory $appSource -Command "npm run dev -- --host 127.0.0.1 --port $FrontendPort"
+Start-NamedPowerShell -Title "AccrediCore Frontend" -WorkingDirectory $appSource -Command "npx vite --host 127.0.0.1 --port $FrontendPort --strictPort"
 
 $loginUrl = "http://127.0.0.1:$FrontendPort/auth"
 if (-not (Wait-HttpEndpointReady -Url $loginUrl -TimeoutSeconds 180)) {

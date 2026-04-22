@@ -231,10 +231,13 @@
           <button class="btn login-highlight" id="open-login-url-btn" type="button" style="display:none;" data-i18n="openLoginUrl">Open login URL</button>
         </div>
         <div class="next-step-panel" id="login-details" style="display:none;">
-          <h3 data-i18n="loginDetailsTitle">Local login details</h3>
+          <div class="split-row">
+            <h3 data-i18n="loginDetailsTitle">Local login details (Please copy manual and paste in your permanent document)</h3>
+            <button class="btn login-highlight small" id="copy-login-details-btn" type="button" data-i18n="copyLoginDetails">Copy login details</button>
+          </div>
           <p class="lead"><span data-i18n="loginUrlLabel">Login URL:</span> <code id="login-url-value">http://127.0.0.1:4173/auth</code></p>
-          <p class="lead"><span data-i18n="rootUsernameLabel">Your username:</span> <code>local-admin@accredicore.local</code></p>
-          <p class="lead"><span data-i18n="rootPasswordLabel">Your password:</span> <code>LocalAdmin123!</code></p>
+          <p class="lead"><span data-i18n="rootUsernameLabel">Your username:</span> <code id="root-username-value">@root</code></p>
+          <p class="lead"><span data-i18n="rootPasswordLabel">Your password:</span> <code id="root-password-value">I'mTheR00t#</code></p>
           <div class="danger-callout" data-i18n="loginCredentialNote">
             Please use copy/paste for this credential to login into your superadmin (root) account and start creating other accounts. If the login page cannot be reached, wait 2-3 minutes and reload after the frontend terminal shows the local URL.
           </div>
