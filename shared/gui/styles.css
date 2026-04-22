@@ -44,6 +44,12 @@ h1, h2, h3 { margin-top: 0; }
 .btn.primary { background: linear-gradient(90deg, var(--accent), #6c8dff); }
 .btn.secondary { background: rgba(255,255,255,0.04); }
 .btn.ghost { background: transparent; }
+.btn.login-highlight {
+  background: linear-gradient(90deg, #ffd166, #ff9f1c);
+  color: #1f1400;
+  border-color: rgba(255,209,102,.75);
+  box-shadow: 0 14px 34px rgba(255,159,28,.28);
+}
 .btn:disabled { opacity: .6; cursor: not-allowed; }
 .status-pill {
   display: inline-flex; align-items: center; min-height: 34px; padding: 0 12px;

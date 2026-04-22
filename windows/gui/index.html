@@ -188,10 +188,10 @@
       </section>
 
       <section class="card stack-gap" id="server-step-wrap" style="grid-column: 1 / -1; display:none;">
-        <h2 data-i18n="step7Title">Step 7 — Start Backend and Frontend</h2>
+        <h2 data-i18n="step7Title">Step 7 - Start Backend and Frontend</h2>
         <p class="lead" data-i18n="step7Lead">After activation configuration succeeds, start the local backend services and the frontend development server.</p>
-        <div class="danger-callout" id="server-starting-note" data-i18n="serverStartingNote">
-          Server is starting. This can take 2-3 minutes on the first run. Please wait and do not close the opened service windows until Step 8 appears.
+        <div class="danger-callout" id="server-starting-note" style="display:none;" data-i18n="serverStartingNote">
+          Server is starting. This can take 2-3 minutes on the first run. Please wait and do not close the opened service windows until Step 8 appears. If your Windows appears and redirects you to CMD/PowerShell Prompt, do not close them. Keep them open, then go back to this installer page for the next step (Step 8).
         </div>
         <div class="button-row wrap">
           <button class="btn primary" id="start-servers-btn" type="button" disabled data-i18n="step7Button">Step 7. Run backend and frontend</button>
@@ -199,12 +199,35 @@
         <p class="lead" id="server-step-status" data-i18n="step7Locked">Step 7 is locked until configuration import succeeds.</p>
       </section>
 
+
+      <section class="card stack-gap" style="grid-column: 1 / -1;">
+        <h2 data-i18n="outputTitle">Output</h2>
+        <textarea id="command-output" class="output-box" spellcheck="false">AccrediCore Windows installer ready.
+</textarea>
+        <div class="next-step-panel" id="next-step-panel" style="display:none;">
+          <div>
+            <p class="eyebrow" id="next-step-kicker" data-i18n="nextStepKicker">Next step</p>
+            <h3 id="next-step-title">Step 5A/5B - Database Set-up</h3>
+            <p class="lead" id="next-step-text">Create the database, import the table structure from the cloned repository, and test the connection.</p>
+          </div>
+          <div class="button-row wrap">
+            <button class="btn primary" id="next-install-dependencies-btn" type="button" style="display:none;" data-i18n="step2Button">Step 2. Install dependencies</button>
+            <button class="btn primary" id="next-rerun-check-btn" type="button" style="display:none;" data-i18n="rerunCheckButton">Re-run Step 1 Check</button>
+            <button class="btn secondary" id="next-validate-repo-btn" type="button" style="display:none;" data-i18n="nextValidateRepo">Validate source code first</button>
+            <button class="btn primary" id="next-bootstrap-database-btn" type="button" style="display:none;" data-i18n="nextBootstrapDatabase">Step 5A/5B. Database Set-up</button>
+            <button class="btn secondary" id="next-import-config-btn" type="button" style="display:none;" data-i18n="nextImportConfig">Step 6. Import configuration</button>
+            <button class="btn secondary" id="next-start-servers-btn" type="button" style="display:none;" data-i18n="nextStartServers">Step 7. Start servers</button>
+            <button class="btn secondary" id="next-show-login-btn" type="button" style="display:none;" data-i18n="nextShowLogin">Step 8. Show login access</button>
+          </div>
+        </div>
+      </section>
+
       <section class="card stack-gap" id="login-step-wrap" style="grid-column: 1 / -1; display:none;">
-        <h2 data-i18n="step8Title">Step 8 — Login Access</h2>
+        <h2 data-i18n="step8Title">Step 8 - Login Access</h2>
         <p class="lead" data-i18n="step8Lead">After the servers are running, open the local login URL and use the root account below for the first smoke test.</p>
         <div class="button-row wrap">
           <button class="btn primary" id="show-login-btn" type="button" disabled data-i18n="step8Button">Step 8. Show login URL and root account</button>
-          <button class="btn secondary" id="open-login-url-btn" type="button" style="display:none;" data-i18n="openLoginUrl">Open login URL</button>
+          <button class="btn login-highlight" id="open-login-url-btn" type="button" style="display:none;" data-i18n="openLoginUrl">Open login URL</button>
         </div>
         <div class="next-step-panel" id="login-details" style="display:none;">
           <h3 data-i18n="loginDetailsTitle">Local login details</h3>
@@ -219,27 +242,7 @@
         <p class="lead" id="login-step-status" data-i18n="step8Locked">Step 8 is locked until the servers are launched.</p>
       </section>
 
-      <section class="card stack-gap" style="grid-column: 1 / -1;">
-        <h2 data-i18n="outputTitle">Output</h2>
-        <textarea id="command-output" class="output-box" spellcheck="false">AccrediCore Windows installer ready.
-</textarea>
-        <div class="next-step-panel" id="next-step-panel" style="display:none;">
-          <div>
-            <p class="eyebrow" id="next-step-kicker" data-i18n="nextStepKicker">Next step</p>
-            <h3 id="next-step-title">Step 5A/5B — Database Set-up</h3>
-            <p class="lead" id="next-step-text">Create the database, import the table structure from the cloned repository, and test the connection.</p>
-          </div>
-          <div class="button-row wrap">
-            <button class="btn primary" id="next-install-dependencies-btn" type="button" style="display:none;" data-i18n="step2Button">Step 2. Install dependencies</button>
-            <button class="btn primary" id="next-rerun-check-btn" type="button" style="display:none;" data-i18n="rerunCheckButton">Re-run Step 1 Check</button>
-            <button class="btn secondary" id="next-validate-repo-btn" type="button" style="display:none;" data-i18n="nextValidateRepo">Validate source code first</button>
-            <button class="btn primary" id="next-bootstrap-database-btn" type="button" style="display:none;" data-i18n="nextBootstrapDatabase">Step 5A/5B. Database Set-up</button>
-            <button class="btn secondary" id="next-import-config-btn" type="button" style="display:none;" data-i18n="nextImportConfig">Step 6. Import configuration</button>
-            <button class="btn secondary" id="next-start-servers-btn" type="button" style="display:none;" data-i18n="nextStartServers">Step 7. Start servers</button>
-            <button class="btn secondary" id="next-show-login-btn" type="button" style="display:none;" data-i18n="nextShowLogin">Step 8. Show login access</button>
-          </div>
-        </div>
-      </section>
+      
     </main>
   </div>
 

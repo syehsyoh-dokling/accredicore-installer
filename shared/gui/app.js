@@ -88,7 +88,7 @@
       step6Locked: 'Step 6 is locked until database bootstrap completes.',
       step7Title: 'Step 7 — Start Backend and Frontend',
       step7Lead: 'After activation configuration succeeds, start the local backend services and the frontend development server.',
-      serverStartingNote: 'Server is starting. This can take 2-3 minutes on the first run. Please wait and do not close the opened service windows until Step 8 appears.',
+      serverStartingNote: 'Server is starting. This can take 2-3 minutes on the first run. Please wait and do not close the opened service windows until Step 8 appears. If your Windows appears and redirects you to CMD/PowerShell Prompt, do not close them. Keep them open, then go back to this installer page for the next step (Step 8).',
       step7Button: 'Step 7. Run backend and frontend',
       step7Locked: 'Step 7 is locked until configuration import succeeds.',
       step8Title: 'Step 8 — Login Access',
@@ -177,7 +177,7 @@
       step6Locked: 'الخطوة 6 مقفلة حتى يكتمل إعداد قاعدة البيانات.',
       step7Title: 'الخطوة 7 — تشغيل الخلفية والواجهة',
       step7Lead: 'بعد نجاح إعداد التفعيل، شغل خدمات الخلفية وخادم الواجهة المحلي.',
-      serverStartingNote: 'جاري تشغيل الخادم. قد يستغرق ذلك من دقيقتين إلى ثلاث دقائق في أول تشغيل. يرجى الانتظار وعدم إغلاق نوافذ الخدمات المفتوحة حتى تظهر الخطوة 8.',
+      serverStartingNote: 'جاري تشغيل الخادم. قد يستغرق ذلك من دقيقتين إلى ثلاث دقائق في أول تشغيل. يرجى الانتظار وعدم إغلاق نوافذ CMD/PowerShell المفتوحة. اتركها مفتوحة ثم ارجع إلى صفحة المثبت للخطوة التالية (الخطوة 8).',
       step7Button: 'الخطوة 7. تشغيل الخلفية والواجهة',
       step7Locked: 'الخطوة 7 مقفلة حتى ينجح استيراد الإعدادات.',
       step8Title: 'الخطوة 8 — بيانات الدخول',
@@ -1069,7 +1069,9 @@
     }
 
     appendOutput('>>> Step 7: Start backend and frontend');
-    appendOutput('SERVER IS STARTING... This can take 2-3 minutes. Please wait until Step 8 appears and do not close the opened service windows.');
+    const serverStartingNote = byId('server-starting-note');
+    if (serverStartingNote) serverStartingNote.style.display = '';
+    appendOutput('SERVER IS STARTING... This can take 2-3 minutes. If CMD/PowerShell windows open, keep them open and return to this installer page for Step 8.');
     const result = await window.accredicore.runAction({
       action: 'start-servers',
       targetDir,
@@ -1086,6 +1088,8 @@
     if (result.code === 0) {
       state.serverStarted = true;
       appendOutput('Step 7 completed. Step 8 is now unlocked: show login URL and root account.');
+    } else if (serverStartingNote) {
+      serverStartingNote.style.display = 'none';
     }
 
     refreshWorkflow();
@@ -1115,6 +1119,8 @@
     if (details) details.style.display = '';
     if (openBtn) openBtn.style.display = '';
     if (loginUrlValue) loginUrlValue.textContent = loginUrl;
+    const loginStatus = byId('login-step-status');
+    if (loginStatus) loginStatus.style.display = 'none';
     state.loginShown = true;
     appendOutput('STEP 8 RESULT');
     appendOutput(`- Click here to open login page: ${loginUrl}`);
@@ -1462,7 +1468,7 @@
     if (dbStatus) dbStatus.textContent = 'Database structure imported successfully.';
     if (configStatus) configStatus.textContent = 'Configuration files imported successfully.';
     if (serverStatus) serverStatus.textContent = 'Backend and frontend startup commands were launched.';
-    if (loginStatus) loginStatus.textContent = 'Login details are visible below.';
+    if (loginStatus) loginStatus.style.display = 'none';
   }
 
   function refreshNextStepPanel() {

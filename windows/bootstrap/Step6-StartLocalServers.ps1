@@ -115,13 +115,30 @@ Write-Host ""
 Write-Host "SERVER IS STARTING..."
 Write-Host "- This usually takes 2-3 minutes on the first run."
 Write-Host "- Please keep the opened service windows running."
+Write-Host "- If Windows redirects you to CMD/PowerShell Prompt, do not close those windows. Keep them open and return to this installer page."
 Write-Host "- Continue to Step 8 only after the frontend window shows the local URL."
 Write-Host ""
 
 Write-Host "- Starting local Supabase stack. Docker Desktop must be running."
+Write-Host "- Checking Docker Desktop engine..."
+$dockerInfo = & docker info 2>&1
+if ($LASTEXITCODE -ne 0) {
+  Write-Host "ERROR: Docker Desktop is installed but the Docker engine is not running or is not reachable."
+  Write-Host "Instruction:"
+  Write-Host "1. Open Docker Desktop."
+  Write-Host "2. Wait until Docker Desktop status shows it is running."
+  Write-Host "3. Return to this installer and run Step 7 again."
+  Write-Host ""
+  Write-Host ($dockerInfo | Out-String)
+  exit 1
+}
+
 Push-Location $appSource
 try {
   npx supabase start | Out-Host
+  if ($LASTEXITCODE -ne 0) {
+    throw "Supabase local stack failed to start. Make sure Docker Desktop is running, then run Step 7 again."
+  }
 } finally {
   Pop-Location
 }
