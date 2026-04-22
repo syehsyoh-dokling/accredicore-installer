@@ -139,6 +139,48 @@ function Start-DockerDesktopAndWait {
   return $false
 }
 
+function Test-HttpEndpointReady {
+  param(
+    [Parameter(Mandatory=$true)][string]$Url
+  )
+
+  try {
+    $response = Invoke-WebRequest -Uri $Url -UseBasicParsing -TimeoutSec 3
+    return ($response.StatusCode -ge 200 -and $response.StatusCode -lt 500)
+  } catch {
+    return $false
+  }
+}
+
+function Wait-HttpEndpointReady {
+  param(
+    [Parameter(Mandatory=$true)][string]$Url,
+    [int]$TimeoutSeconds = 180
+  )
+
+  Write-Host "- Waiting until the frontend login page is reachable:"
+  Write-Host "  $Url"
+
+  $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+  do {
+    if (Test-HttpEndpointReady -Url $Url) {
+      Write-Host "- Frontend login page is reachable."
+      return $true
+    }
+
+    Write-Host "- Frontend is still starting. Please wait..."
+    Start-Sleep -Seconds 5
+  } while ((Get-Date) -lt $deadline)
+
+  Write-Host "ERROR: The frontend login page is not reachable yet."
+  Write-Host "Instruction:"
+  Write-Host "1. Keep the opened CMD/PowerShell service windows running."
+  Write-Host "2. Check the frontend window and wait until it shows the local URL."
+  Write-Host "3. Return to this installer and run Step 7 again."
+  Write-Host "4. Do not open Step 8 until the installer confirms the login page is reachable."
+  return $false
+}
+
 $appSource = Join-Path $ProjectRoot "app-source"
 $localApi = Join-Path $ProjectRoot "local-api"
 $setupScript = Join-Path $ProjectRoot "scripts\setup\setup-env-win.ps1"
@@ -205,13 +247,19 @@ Start-NamedPowerShell -Title "AccrediCore Supabase Edge Functions" -WorkingDirec
 Start-NamedPowerShell -Title "AccrediCore Local API" -WorkingDirectory $localApi -Command "npm start"
 Start-NamedPowerShell -Title "AccrediCore Frontend" -WorkingDirectory $appSource -Command "npm run dev -- --host 127.0.0.1 --port $FrontendPort"
 
+$loginUrl = "http://127.0.0.1:$FrontendPort/auth"
+if (-not (Wait-HttpEndpointReady -Url $loginUrl -TimeoutSeconds 180)) {
+  exit 1
+}
+
 Write-Host ""
 Write-Host "STEP 7 RESULT"
 Write-Host "- Backend and frontend startup commands were launched."
 Write-Host "- Frontend URL: http://127.0.0.1:$FrontendPort"
-Write-Host "- Login URL: http://127.0.0.1:$FrontendPort/auth"
+Write-Host "- Login URL: $loginUrl"
+Write-Host "- Login page readiness: verified."
 Write-Host "- Local API health: http://localhost:$LocalApiPort/api/health"
 Write-Host "- Supabase API: http://127.0.0.1:54321"
 Write-Host "- Supabase Studio: http://127.0.0.1:54323"
 Write-Host ""
-Write-Host "Next: wait until the frontend terminal shows the Vite ready message, then click Step 8 in the installer."
+Write-Host "Next: click Step 8 in the installer to show the login URL and root account."

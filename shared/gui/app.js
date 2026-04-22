@@ -1104,7 +1104,7 @@
     if (result.code === 0) {
       state.serverStarted = true;
       state.serverStartFailed = false;
-      appendOutput('Step 7 completed. Step 8 is now unlocked: show login URL and root account.');
+      appendOutput('Step 7 completed. The login page is reachable. Step 8 is now unlocked: show login URL and root account.');
     } else {
       state.serverStarted = false;
       state.serverStartFailed = true;
