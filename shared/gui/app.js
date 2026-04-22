@@ -22,6 +22,7 @@
     dbBootstrapFailed: false,
     configImported: false,
     serverStarted: false,
+    serverStartFailed: false,
     loginShown: false,
     language: 'en',
 
@@ -115,6 +116,8 @@
       nextFixDatabaseText: 'Step 5 did not complete. Step 6 is locked. Fix PostgreSQL Client (psql) or the database password, run Step 1 Check Requirements again, then retry Step 5A/5B.',
       nextImportConfig: 'Step 6. Import configuration',
       nextStartServers: 'Step 7. Start servers',
+      nextFixServersTitle: 'Step 7 — Fix Docker Desktop First',
+      nextFixServersText: 'Server startup did not complete. Open Docker Desktop, wait until the Docker engine is running, then click Step 7 again. Step 8 stays locked until the server startup succeeds.',
       nextShowLogin: 'Step 8. Show login access',
       offlineActivationEyebrow: 'Offline activation',
       offlineActivationModalTitle: 'Use another internet-connected device',
@@ -204,6 +207,8 @@
       nextFixDatabaseText: 'لم تكتمل الخطوة 5. ستبقى الخطوة 6 مقفلة. أصلح PostgreSQL Client (psql) أو كلمة مرور قاعدة البيانات، ثم أعد فحص الخطوة 1 وجرب الخطوة 5A/5B مرة أخرى.',
       nextImportConfig: 'الخطوة 6. استيراد الإعدادات',
       nextStartServers: 'الخطوة 7. تشغيل الخوادم',
+      nextFixServersTitle: 'الخطوة 7 — أصلح Docker Desktop أولا',
+      nextFixServersText: 'لم يكتمل تشغيل الخادم. افتح Docker Desktop وانتظر حتى يعمل المحرك، ثم اضغط الخطوة 7 مرة أخرى. ستبقى الخطوة 8 مقفلة حتى ينجح التشغيل.',
       nextShowLogin: 'الخطوة 8. عرض بيانات الدخول',
       offlineActivationEyebrow: 'تفعيل بدون إنترنت',
       offlineActivationModalTitle: 'استخدم جهازا آخر متصلا بالإنترنت',
@@ -759,6 +764,7 @@
       state.dbBootstrapFailed = false;
       state.configImported = false;
       state.serverStarted = false;
+      state.serverStartFailed = false;
       state.loginShown = false;
     } else {
       state.installCompleted = false;
@@ -926,6 +932,7 @@
       state.dbBootstrapFailed = false;
       state.configImported = false;
       state.serverStarted = false;
+      state.serverStartFailed = false;
       state.loginShown = false;
       appendOutput('Next: validate the cloned source code, then continue to Step 5 Database Set-up below this output box.');
     }
@@ -950,6 +957,7 @@
       state.dbBootstrapFailed = false;
       state.configImported = false;
       state.serverStarted = false;
+      state.serverStartFailed = false;
       state.loginShown = false;
       appendOutput('Repository validation completed. The project is ready for database bootstrap.');
     }
@@ -985,6 +993,7 @@
     state.dbBootstrapFailed = false;
     state.configImported = false;
     state.serverStarted = false;
+    state.serverStartFailed = false;
     state.loginShown = false;
 
     appendOutput('>>> Step 5A/5B: Create database, import AccrediCore structure, and test connection');
@@ -1054,6 +1063,7 @@
     if (result.code === 0) {
       state.configImported = true;
       state.serverStarted = false;
+      state.serverStartFailed = false;
       state.loginShown = false;
       appendOutput('Configuration import completed successfully. Step 7 is now unlocked: run backend and frontend.');
     }
@@ -1067,6 +1077,10 @@
       appendOutput('ERROR: Import .env and activation.json successfully before starting servers.');
       return;
     }
+
+    state.serverStarted = false;
+    state.serverStartFailed = false;
+    state.loginShown = false;
 
     appendOutput('>>> Step 7: Start backend and frontend');
     const serverStartingNote = byId('server-starting-note');
@@ -1087,9 +1101,14 @@
 
     if (result.code === 0) {
       state.serverStarted = true;
+      state.serverStartFailed = false;
       appendOutput('Step 7 completed. Step 8 is now unlocked: show login URL and root account.');
-    } else if (serverStartingNote) {
-      serverStartingNote.style.display = 'none';
+    } else {
+      state.serverStarted = false;
+      state.serverStartFailed = true;
+      appendOutput('Step 7 did not complete. Step 8 remains locked.');
+      appendOutput('Instruction: open Docker Desktop, wait until Docker engine is running, then run Step 7 again.');
+      if (serverStartingNote) serverStartingNote.style.display = 'none';
     }
 
     refreshWorkflow();
@@ -1444,11 +1463,15 @@
     }
 
     if (!state.serverStarted) {
-      setWorkflowStatus('Configuration files imported successfully. Step 7 is active: start backend and frontend.');
+      setWorkflowStatus(state.serverStartFailed
+        ? 'Server startup failed. Open Docker Desktop, wait until it is running, then run Step 7 again.'
+        : 'Configuration files imported successfully. Step 7 is active: start backend and frontend.');
       setGithubStepStatus('Step 4 completed successfully.');
       if (dbStatus) dbStatus.textContent = 'Database structure imported successfully.';
       if (configStatus) configStatus.textContent = 'Configuration files imported successfully.';
-      if (serverStatus) serverStatus.textContent = 'Ready to start backend and frontend services.';
+      if (serverStatus) serverStatus.textContent = state.serverStartFailed
+        ? 'Docker Desktop engine is not running. Open Docker Desktop, wait until it is ready, then click Step 7 again.'
+        : 'Ready to start backend and frontend services.';
       if (loginStatus) loginStatus.textContent = 'Step 8 is locked until the servers are launched.';
       return;
     }
@@ -1543,8 +1566,12 @@
 
     if (state.configImported && !state.serverStarted) {
       panel.style.display = '';
-      if (title) title.textContent = 'Step 7 — Start Backend and Frontend';
-      if (text) text.textContent = 'Configuration import succeeded. Start local backend services and the frontend development server.';
+      if (title) title.textContent = state.serverStartFailed
+        ? translate('nextFixServersTitle')
+        : 'Step 7 — Start Backend and Frontend';
+      if (text) text.textContent = state.serverStartFailed
+        ? translate('nextFixServersText')
+        : 'Configuration import succeeded. Start local backend services and the frontend development server.';
       if (servers) servers.style.display = '';
       return;
     }
