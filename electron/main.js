@@ -47,6 +47,7 @@ function scriptForAction(platformKey, action) {
       'bootstrap-database': ['powershell.exe', ['-ExecutionPolicy', 'Bypass', '-File', path.join(base, 'windows/bootstrap/Step4-BootstrapDatabase.ps1')]],
       'import-config': ['powershell.exe', ['-ExecutionPolicy', 'Bypass', '-File', path.join(base, 'windows/bootstrap/Step5-ImportActivationConfig.ps1')]],
       'start-servers': ['powershell.exe', ['-ExecutionPolicy', 'Bypass', '-File', path.join(base, 'windows/bootstrap/Step6-StartLocalServers.ps1')]],
+      'open-docker-desktop': ['powershell.exe', ['-ExecutionPolicy', 'Bypass', '-File', path.join(base, 'windows/bootstrap/Open-DockerDesktop.ps1')]],
       git: ['powershell.exe', ['-ExecutionPolicy', 'Bypass', '-File', path.join(base, 'windows/bootstrap/Step3-CommitAndPushProject.ps1')]],
       build: ['cmd.exe', ['/c', 'npm', 'run', 'dist:win']],
       'stop-process': ['powershell.exe', ['-ExecutionPolicy', 'Bypass', '-File', path.join(base, 'windows/bootstrap/Stop-ProcessByPid.ps1')]]

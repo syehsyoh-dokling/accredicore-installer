@@ -118,6 +118,7 @@
       nextStartServers: 'Step 7. Start servers',
       nextFixServersTitle: 'Step 7 — Fix Docker Desktop First',
       nextFixServersText: 'Server startup did not complete. The installer tried to open Docker Desktop automatically. Complete Docker login/register if requested, wait until the Docker engine is running, then click Step 7 again. Step 8 stays locked until startup succeeds.',
+      openDockerDesktop: 'Open Docker Desktop / Login',
       nextShowLogin: 'Step 8. Show login access',
       offlineActivationEyebrow: 'Offline activation',
       offlineActivationModalTitle: 'Use another internet-connected device',
@@ -209,6 +210,7 @@
       nextStartServers: 'الخطوة 7. تشغيل الخوادم',
       nextFixServersTitle: 'الخطوة 7 — أصلح Docker Desktop أولا',
       nextFixServersText: 'لم يكتمل تشغيل الخادم. حاول المثبت فتح Docker Desktop تلقائيا. أكمل تسجيل الدخول أو إنشاء الحساب إذا طلب Docker ذلك، وانتظر حتى يعمل المحرك، ثم اضغط الخطوة 7 مرة أخرى. ستبقى الخطوة 8 مقفلة حتى ينجح التشغيل.',
+      openDockerDesktop: 'فتح Docker Desktop / تسجيل الدخول',
       nextShowLogin: 'الخطوة 8. عرض بيانات الدخول',
       offlineActivationEyebrow: 'تفعيل بدون إنترنت',
       offlineActivationModalTitle: 'استخدم جهازا آخر متصلا بالإنترنت',
@@ -1114,6 +1116,32 @@
     refreshWorkflow();
   }
 
+  async function openDockerDesktop() {
+    if (!(window.accredicore && typeof window.accredicore.runAction === 'function')) {
+      appendOutput('ERROR: Docker Desktop can only be opened from the native installer, not from a normal browser tab.');
+      return;
+    }
+
+    appendOutput('>>> Opening Docker Desktop / Login');
+    appendOutput('If Docker asks for login/register/terms, complete it in the Docker Desktop window, keep Docker running, then return to this installer.');
+
+    try {
+      const result = await window.accredicore.runAction({
+        action: 'open-docker-desktop'
+      });
+      appendOutput(result.output || '');
+      if (result.code === 0) {
+        appendOutput('Docker Desktop is ready. Next: click Step 7. Start servers again.');
+      } else {
+        appendOutput('Docker Desktop is not ready yet. Complete Docker login/register if requested, wait until it is running, then click this button or Step 7 again.');
+      }
+    } catch (error) {
+      appendOutput('ERROR opening Docker Desktop: ' + (error && error.message ? error.message : String(error)));
+    }
+
+    refreshWorkflow();
+  }
+
   async function openLoginUrl() {
     const frontendPort = state.portPlan && state.portPlan.frontend ? state.portPlan.frontend : 4173;
     const url = `http://127.0.0.1:${frontendPort}/auth`;
@@ -1505,10 +1533,11 @@
     const validate = byId('next-validate-repo-btn');
     const db = byId('next-bootstrap-database-btn');
     const config = byId('next-import-config-btn');
+    const docker = byId('next-open-docker-btn');
     const servers = byId('next-start-servers-btn');
     const login = byId('next-show-login-btn');
 
-    [install, rerun, validate, db, config, servers, login].forEach((btn) => {
+    [install, rerun, validate, db, config, docker, servers, login].forEach((btn) => {
       if (btn) btn.style.display = 'none';
     });
 
@@ -1572,6 +1601,7 @@
       if (text) text.textContent = state.serverStartFailed
         ? translate('nextFixServersText')
         : 'Configuration import succeeded. Start local backend services and the frontend development server.';
+      if (docker && state.serverStartFailed) docker.style.display = '';
       if (servers) servers.style.display = '';
       return;
     }
@@ -1669,6 +1699,7 @@
     const nextValidateRepoBtn = byId('next-validate-repo-btn');
     const nextBootstrapDatabaseBtn = byId('next-bootstrap-database-btn');
     const nextImportConfigBtn = byId('next-import-config-btn');
+    const nextOpenDockerBtn = byId('next-open-docker-btn');
     const nextStartServersBtn = byId('next-start-servers-btn');
     const nextShowLoginBtn = byId('next-show-login-btn');
 
@@ -1701,6 +1732,7 @@
       const wrap = byId('config-step-wrap');
       if (wrap) wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
+    if (nextOpenDockerBtn) nextOpenDockerBtn.addEventListener('click', openDockerDesktop);
     if (nextStartServersBtn) nextStartServersBtn.addEventListener('click', () => {
       const wrap = byId('server-step-wrap');
       if (wrap) wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
