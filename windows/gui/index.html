@@ -208,9 +208,12 @@
         </div>
         <div class="next-step-panel" id="login-details" style="display:none;">
           <h3 data-i18n="loginDetailsTitle">Local login details</h3>
-          <p class="lead"><span data-i18n="loginUrlLabel">Login URL:</span> <code>http://127.0.0.1:4173/auth</code></p>
-          <p class="lead"><span data-i18n="rootUsernameLabel">Root username:</span> <code>local-admin@accredicore.local</code></p>
-          <p class="lead"><span data-i18n="rootPasswordLabel">Root password:</span> <code>LocalAdmin123!</code></p>
+          <p class="lead"><span data-i18n="loginUrlLabel">Login URL:</span> <code id="login-url-value">http://127.0.0.1:4173/auth</code></p>
+          <p class="lead"><span data-i18n="rootUsernameLabel">Your username:</span> <code>local-admin@accredicore.local</code></p>
+          <p class="lead"><span data-i18n="rootPasswordLabel">Your password:</span> <code>LocalAdmin123!</code></p>
+          <div class="danger-callout" data-i18n="loginCredentialNote">
+            Please use copy/paste for this credential to login into your superadmin (root) account and start creating other accounts. If the login page cannot be reached, wait 2-3 minutes and reload after the frontend terminal shows the local URL.
+          </div>
           <p class="lead" data-i18n="extraAccountsHint">Additional test accounts are available in the manual test guide: quality-manager, department-manager, team-leader, and staff-user.</p>
         </div>
         <p class="lead" id="login-step-status" data-i18n="step8Locked">Step 8 is locked until the servers are launched.</p>

@@ -94,11 +94,12 @@
       step8Title: 'Step 8 — Login Access',
       step8Lead: 'After the servers are running, open the local login URL and use the root account below for the first smoke test.',
       step8Button: 'Step 8. Show login URL and root account',
-      openLoginUrl: 'Open login URL',
+      openLoginUrl: 'Click here to open login page',
       loginDetailsTitle: 'Local login details',
       loginUrlLabel: 'Login URL:',
-      rootUsernameLabel: 'Root username:',
-      rootPasswordLabel: 'Root password:',
+      rootUsernameLabel: 'Your username:',
+      rootPasswordLabel: 'Your password:',
+      loginCredentialNote: 'Please use copy/paste for this credential to login into your superadmin (root) account and start creating other accounts. If the login page cannot be reached, wait 2-3 minutes and reload after the frontend terminal shows the local URL.',
       extraAccountsHint: 'Additional test accounts are available in the manual test guide: quality-manager, department-manager, team-leader, and staff-user.',
       step8Locked: 'Step 8 is locked until the servers are launched.',
       outputTitle: 'Output',
@@ -182,11 +183,12 @@
       step8Title: 'الخطوة 8 — بيانات الدخول',
       step8Lead: 'بعد تشغيل الخوادم، افتح رابط الدخول المحلي واستخدم حساب الجذر لاختبار أولي.',
       step8Button: 'الخطوة 8. عرض رابط الدخول وحساب الجذر',
-      openLoginUrl: 'فتح رابط الدخول',
+      openLoginUrl: 'اضغط هنا لفتح صفحة الدخول',
       loginDetailsTitle: 'بيانات الدخول المحلية',
       loginUrlLabel: 'رابط الدخول:',
-      rootUsernameLabel: 'اسم مستخدم الجذر:',
-      rootPasswordLabel: 'كلمة مرور الجذر:',
+      rootUsernameLabel: 'اسم المستخدم:',
+      rootPasswordLabel: 'كلمة المرور:',
+      loginCredentialNote: 'يرجى نسخ ولصق بيانات الدخول هذه للدخول إلى حساب المدير الأعلى (root) ثم إنشاء الحسابات الأخرى. إذا لم تفتح صفحة الدخول، انتظر من دقيقتين إلى ثلاث دقائق ثم أعد التحميل بعد ظهور الرابط المحلي في نافذة الواجهة.',
       extraAccountsHint: 'توجد حسابات اختبار إضافية في دليل الاختبار اليدوي: مدير الجودة، مدير القسم، قائد الفريق، والمستخدم العادي.',
       step8Locked: 'الخطوة 8 مقفلة حتى يتم تشغيل الخوادم.',
       outputTitle: 'المخرجات',
@@ -1107,14 +1109,19 @@
 
     const details = byId('login-details');
     const openBtn = byId('open-login-url-btn');
+    const loginUrlValue = byId('login-url-value');
+    const frontendPort = state.portPlan && state.portPlan.frontend ? state.portPlan.frontend : 4173;
+    const loginUrl = `http://127.0.0.1:${frontendPort}/auth`;
     if (details) details.style.display = '';
     if (openBtn) openBtn.style.display = '';
+    if (loginUrlValue) loginUrlValue.textContent = loginUrl;
     state.loginShown = true;
     appendOutput('STEP 8 RESULT');
-    const frontendPort = state.portPlan && state.portPlan.frontend ? state.portPlan.frontend : 4173;
-    appendOutput(`- Login URL: http://127.0.0.1:${frontendPort}/auth`);
-    appendOutput('- Root username: local-admin@accredicore.local');
-    appendOutput('- Root password: LocalAdmin123!');
+    appendOutput(`- Click here to open login page: ${loginUrl}`);
+    appendOutput('- Your username: local-admin@accredicore.local');
+    appendOutput('- Your password: LocalAdmin123!');
+    appendOutput('- Please copy/paste this credential to login into your superadmin (root) account and start creating other accounts.');
+    appendOutput('- If the browser says connection refused, wait 2-3 minutes and reload after the frontend terminal shows the local URL.');
     appendOutput('- Additional manual test users: quality-manager@accredicore.local, dept-manager@accredicore.local, team-leader@accredicore.local, staff-user@accredicore.local');
     refreshWorkflow();
   }
