@@ -45,6 +45,7 @@ function scriptForAction(platformKey, action) {
       'clone-repo': ['powershell.exe', ['-ExecutionPolicy', 'Bypass', '-File', path.join(base, 'windows/bootstrap/Step3-CloneRepoFromGitHub.ps1')]],
       'validate-repo': ['powershell.exe', ['-ExecutionPolicy', 'Bypass', '-File', path.join(base, 'windows/bootstrap/Step3-ValidateRepository.ps1')]],
       'bootstrap-database': ['powershell.exe', ['-ExecutionPolicy', 'Bypass', '-File', path.join(base, 'windows/bootstrap/Step4-BootstrapDatabase.ps1')]],
+      'reset-postgres-password': ['powershell.exe', ['-ExecutionPolicy', 'Bypass', '-File', path.join(base, 'windows/bootstrap/Reset-PostgresPassword.ps1')]],
       'import-config': ['powershell.exe', ['-ExecutionPolicy', 'Bypass', '-File', path.join(base, 'windows/bootstrap/Step5-ImportActivationConfig.ps1')]],
       'start-servers': ['powershell.exe', ['-ExecutionPolicy', 'Bypass', '-File', path.join(base, 'windows/bootstrap/Step6-StartLocalServers.ps1')]],
       'open-docker-desktop': ['powershell.exe', ['-ExecutionPolicy', 'Bypass', '-File', path.join(base, 'windows/bootstrap/Open-DockerDesktop.ps1')]],
@@ -96,6 +97,11 @@ function addDynamicArgs(platformKey, action, args, payload) {
       if (payload.dbName) next.push('-DbName', payload.dbName);
       if (payload.dbUser) next.push('-DbUser', payload.dbUser);
       if (payload.dbPassword !== undefined) next.push('-DbPassword', payload.dbPassword);
+    }
+    if (action === 'reset-postgres-password') {
+      if (payload.dbPassword !== undefined) next.push('-NewPassword', payload.dbPassword);
+      if (payload.dbUser) next.push('-DbUser', payload.dbUser);
+      if (payload.dbPort) next.push('-DbPort', String(payload.dbPort));
     }
     if (action === 'import-config') {
       if (payload.targetDir) next.push('-ProjectRoot', payload.targetDir);

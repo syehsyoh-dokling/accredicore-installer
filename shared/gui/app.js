@@ -20,6 +20,7 @@
     repoValidated: false,
     dbBootstrapCompleted: false,
     dbBootstrapFailed: false,
+    dbFailureReason: null,
     configImported: false,
     serverStarted: false,
     serverStartFailed: false,
@@ -115,6 +116,10 @@
       nextBootstrapDatabase: 'Step 5A/5B. Database Set-up',
       nextFixDatabaseTitle: 'Step 5A/5B — Fix Database Set-up',
       nextFixDatabaseText: 'Step 5 did not complete. Step 6 is locked. Fix PostgreSQL Client (psql) or the database password, run Step 1 Check Requirements again, then retry Step 5A/5B.',
+      nextFixDbPasswordTitle: 'Step 5A/5B — Fix PostgreSQL Password',
+      nextFixDbPasswordText: 'PostgreSQL is installed, but the password for user postgres is incorrect. Enter the correct PostgreSQL password in the Database password field, then retry Step 5. If this is a new local installation and you forgot the password, use Reset PostgreSQL Password first.',
+      resetPostgresPassword: 'Reset PostgreSQL Password',
+      postgresResetWarning: 'Use this reset only for a new/local installation or a PostgreSQL server you own. The reset uses the value currently typed in the Database password field as the new PostgreSQL password.',
       nextImportConfig: 'Step 6. Import configuration',
       nextStartServers: 'Step 7. Start servers',
       nextFixServersTitle: 'Step 7 — Fix Docker Desktop First',
@@ -208,6 +213,10 @@
       nextBootstrapDatabase: 'الخطوة 5A/5B. إعداد قاعدة البيانات',
       nextFixDatabaseTitle: 'الخطوة 5A/5B — إصلاح إعداد قاعدة البيانات',
       nextFixDatabaseText: 'لم تكتمل الخطوة 5. ستبقى الخطوة 6 مقفلة. أصلح PostgreSQL Client (psql) أو كلمة مرور قاعدة البيانات، ثم أعد فحص الخطوة 1 وجرب الخطوة 5A/5B مرة أخرى.',
+      nextFixDbPasswordTitle: 'الخطوة 5A/5B — إصلاح كلمة مرور PostgreSQL',
+      nextFixDbPasswordText: 'PostgreSQL مثبت، لكن كلمة مرور المستخدم postgres غير صحيحة. أدخل كلمة مرور PostgreSQL الصحيحة في حقل كلمة مرور قاعدة البيانات، ثم أعد محاولة الخطوة 5. إذا كان هذا تثبيتا محليا جديدا ونسيت كلمة المرور، استخدم زر إعادة تعيين كلمة مرور PostgreSQL أولا.',
+      resetPostgresPassword: 'إعادة تعيين كلمة مرور PostgreSQL',
+      postgresResetWarning: 'استخدم إعادة التعيين فقط للتثبيت المحلي الجديد أو لخادم PostgreSQL تملكه. سيتم استخدام القيمة المكتوبة حاليا في حقل كلمة مرور قاعدة البيانات ككلمة المرور الجديدة.',
       nextImportConfig: 'الخطوة 6. استيراد الإعدادات',
       nextStartServers: 'الخطوة 7. تشغيل الخوادم',
       nextFixServersTitle: 'الخطوة 7 — أصلح Docker Desktop أولا',
@@ -368,6 +377,23 @@
 
   function hasPostgresClient(report) {
     return getSummaryStatus(report, 'postgres_client') === 'passed';
+  }
+
+  function classifyDbFailure(output) {
+    const text = String(output || '').toLowerCase();
+    if (text.includes('password authentication failed') || text.includes('requires a valid password')) {
+      return 'password';
+    }
+    if (text.includes('psql') && (text.includes('not found') || text.includes('was not found'))) {
+      return 'psql_missing';
+    }
+    if (text.includes('connection refused') || text.includes('could not connect') || text.includes('server is not running')) {
+      return 'server';
+    }
+    if (text.includes('schema import failed')) {
+      return 'import';
+    }
+    return 'unknown';
   }
 
   function validateDbInputs() {
@@ -766,6 +792,7 @@
       state.repoValidated = false;
       state.dbBootstrapCompleted = false;
       state.dbBootstrapFailed = false;
+      state.dbFailureReason = null;
       state.configImported = false;
       state.serverStarted = false;
       state.serverStartFailed = false;
@@ -934,6 +961,7 @@
       state.repoValidated = false;
       state.dbBootstrapCompleted = false;
       state.dbBootstrapFailed = false;
+      state.dbFailureReason = null;
       state.configImported = false;
       state.serverStarted = false;
       state.serverStartFailed = false;
@@ -959,6 +987,7 @@
       state.repoValidated = true;
       state.dbBootstrapCompleted = false;
       state.dbBootstrapFailed = false;
+      state.dbFailureReason = null;
       state.configImported = false;
       state.serverStarted = false;
       state.serverStartFailed = false;
@@ -995,6 +1024,7 @@
 
     state.dbBootstrapCompleted = false;
     state.dbBootstrapFailed = false;
+    state.dbFailureReason = null;
     state.configImported = false;
     state.serverStarted = false;
     state.serverStartFailed = false;
@@ -1015,12 +1045,58 @@
     if (result.code === 0) {
       state.dbBootstrapCompleted = true;
       state.dbBootstrapFailed = false;
+      state.dbFailureReason = null;
       appendOutput('Step 5A/5B completed successfully: database import and smoke test passed. Step 6 is now unlocked.');
     } else {
       state.dbBootstrapCompleted = false;
       state.dbBootstrapFailed = true;
+      state.dbFailureReason = classifyDbFailure(result.output);
       appendOutput('Step 5A/5B did not complete. Step 6 remains locked.');
-      appendOutput('Instruction: run Step 2 Install Dependencies if PostgreSQL Client (psql) is missing, restart the installer if needed, run Step 1 Check Requirements again, then retry Step 5A/5B.');
+      if (state.dbFailureReason === 'password') {
+        appendOutput('PostgreSQL is installed, but the password for user postgres is incorrect. Enter the correct PostgreSQL password in the Database password field, then retry Step 5.');
+        appendOutput('If this is a new local installation and you forgot the password, click "Reset PostgreSQL Password" and then retry Step 5.');
+      } else if (state.dbFailureReason === 'psql_missing') {
+        appendOutput('Instruction: run Step 2 Install Dependencies, restart the installer if needed, run Step 1 Check Requirements again, then retry Step 5A/5B.');
+      } else {
+        appendOutput('Instruction: review the database error above, keep Step 6 locked, then retry Step 5A/5B after the database issue is fixed.');
+      }
+    }
+
+    refreshWorkflow();
+  }
+
+  async function resetPostgresPassword() {
+    if (!(window.accredicore && typeof window.accredicore.runAction === 'function')) {
+      appendOutput('Desktop runtime is not available. Reset PostgreSQL Password requires the native installer launcher.');
+      return;
+    }
+
+    const dbPassword = String(byId('db-password')?.value || '');
+    const dbUser = String(byId('db-user')?.value || '').trim();
+    const dbPort = String(byId('db-port')?.value || '').trim();
+
+    const validationError = validateDbInputs();
+    if (validationError) {
+      appendOutput('ERROR: ' + validationError);
+      return;
+    }
+
+    appendOutput('>>> Reset PostgreSQL password');
+    appendOutput(translate('postgresResetWarning'));
+    appendOutput('Windows may ask for Administrator permission. Choose Yes to continue.');
+
+    const result = await window.accredicore.runAction({
+      action: 'reset-postgres-password',
+      dbPassword,
+      dbUser,
+      dbPort
+    });
+
+    appendOutput(result.output || JSON.stringify(result, null, 2));
+    if (result.code === 0) {
+      appendOutput('Password reset completed. Retry Step 5A/5B Database Set-up now.');
+    } else {
+      appendOutput('Password reset did not complete. Review the message above, then retry or contact technical support.');
     }
 
     refreshWorkflow();
@@ -1559,12 +1635,13 @@
     const rerun = byId('next-rerun-check-btn');
     const validate = byId('next-validate-repo-btn');
     const db = byId('next-bootstrap-database-btn');
+    const resetPostgres = byId('next-reset-postgres-password-btn');
     const config = byId('next-import-config-btn');
     const docker = byId('next-open-docker-btn');
     const servers = byId('next-start-servers-btn');
     const login = byId('next-show-login-btn');
 
-    [install, rerun, validate, db, config, docker, servers, login].forEach((btn) => {
+    [install, rerun, validate, db, resetPostgres, config, docker, servers, login].forEach((btn) => {
       if (btn) btn.style.display = 'none';
     });
 
@@ -1596,6 +1673,14 @@
 
     if (state.repoValidated && !state.dbBootstrapCompleted) {
       panel.style.display = '';
+      if (state.dbBootstrapFailed && state.dbFailureReason === 'password') {
+        if (title) title.textContent = translate('nextFixDbPasswordTitle');
+        if (text) text.textContent = translate('nextFixDbPasswordText');
+        if (resetPostgres) resetPostgres.style.display = '';
+        if (db) db.style.display = '';
+        return;
+      }
+
       if (title) title.textContent = state.dbBootstrapFailed
         ? translate('nextFixDatabaseTitle')
         : 'Step 5A/5B — Database Set-up';
@@ -1726,6 +1811,7 @@
     const copyLoginDetailsBtn = byId('copy-login-details-btn');
     const nextValidateRepoBtn = byId('next-validate-repo-btn');
     const nextBootstrapDatabaseBtn = byId('next-bootstrap-database-btn');
+    const nextResetPostgresPasswordBtn = byId('next-reset-postgres-password-btn');
     const nextImportConfigBtn = byId('next-import-config-btn');
     const nextOpenDockerBtn = byId('next-open-docker-btn');
     const nextStartServersBtn = byId('next-start-servers-btn');
@@ -1757,6 +1843,7 @@
     if (copyLoginDetailsBtn) copyLoginDetailsBtn.addEventListener('click', copyLoginDetails);
     if (nextValidateRepoBtn) nextValidateRepoBtn.addEventListener('click', validateRepo);
     if (nextBootstrapDatabaseBtn) nextBootstrapDatabaseBtn.addEventListener('click', bootstrapDatabase);
+    if (nextResetPostgresPasswordBtn) nextResetPostgresPasswordBtn.addEventListener('click', resetPostgresPassword);
     if (nextImportConfigBtn) nextImportConfigBtn.addEventListener('click', () => {
       const wrap = byId('config-step-wrap');
       if (wrap) wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
