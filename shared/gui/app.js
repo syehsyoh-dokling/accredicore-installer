@@ -117,7 +117,7 @@
       nextImportConfig: 'Step 6. Import configuration',
       nextStartServers: 'Step 7. Start servers',
       nextFixServersTitle: 'Step 7 — Fix Docker Desktop First',
-      nextFixServersText: 'Server startup did not complete. Open Docker Desktop, wait until the Docker engine is running, then click Step 7 again. Step 8 stays locked until the server startup succeeds.',
+      nextFixServersText: 'Server startup did not complete. The installer tried to open Docker Desktop automatically. Complete Docker login/register if requested, wait until the Docker engine is running, then click Step 7 again. Step 8 stays locked until startup succeeds.',
       nextShowLogin: 'Step 8. Show login access',
       offlineActivationEyebrow: 'Offline activation',
       offlineActivationModalTitle: 'Use another internet-connected device',
@@ -208,7 +208,7 @@
       nextImportConfig: 'الخطوة 6. استيراد الإعدادات',
       nextStartServers: 'الخطوة 7. تشغيل الخوادم',
       nextFixServersTitle: 'الخطوة 7 — أصلح Docker Desktop أولا',
-      nextFixServersText: 'لم يكتمل تشغيل الخادم. افتح Docker Desktop وانتظر حتى يعمل المحرك، ثم اضغط الخطوة 7 مرة أخرى. ستبقى الخطوة 8 مقفلة حتى ينجح التشغيل.',
+      nextFixServersText: 'لم يكتمل تشغيل الخادم. حاول المثبت فتح Docker Desktop تلقائيا. أكمل تسجيل الدخول أو إنشاء الحساب إذا طلب Docker ذلك، وانتظر حتى يعمل المحرك، ثم اضغط الخطوة 7 مرة أخرى. ستبقى الخطوة 8 مقفلة حتى ينجح التشغيل.',
       nextShowLogin: 'الخطوة 8. عرض بيانات الدخول',
       offlineActivationEyebrow: 'تفعيل بدون إنترنت',
       offlineActivationModalTitle: 'استخدم جهازا آخر متصلا بالإنترنت',
@@ -1107,7 +1107,7 @@
       state.serverStarted = false;
       state.serverStartFailed = true;
       appendOutput('Step 7 did not complete. Step 8 remains locked.');
-      appendOutput('Instruction: open Docker Desktop, wait until Docker engine is running, then run Step 7 again.');
+      appendOutput('Instruction: the installer tried to open Docker Desktop automatically. Complete Docker login/register if requested, wait until Docker engine is running, then run Step 7 again.');
       if (serverStartingNote) serverStartingNote.style.display = 'none';
     }
 
@@ -1464,13 +1464,13 @@
 
     if (!state.serverStarted) {
       setWorkflowStatus(state.serverStartFailed
-        ? 'Server startup failed. Open Docker Desktop, wait until it is running, then run Step 7 again.'
+        ? 'Server startup failed. The installer tried to open Docker Desktop automatically. Complete Docker login/register if requested, wait until Docker is running, then run Step 7 again.'
         : 'Configuration files imported successfully. Step 7 is active: start backend and frontend.');
       setGithubStepStatus('Step 4 completed successfully.');
       if (dbStatus) dbStatus.textContent = 'Database structure imported successfully.';
       if (configStatus) configStatus.textContent = 'Configuration files imported successfully.';
       if (serverStatus) serverStatus.textContent = state.serverStartFailed
-        ? 'Docker Desktop engine is not running. Open Docker Desktop, wait until it is ready, then click Step 7 again.'
+        ? 'Docker Desktop engine is not running. Complete Docker login/register if requested, wait until Docker is ready, then click Step 7 again.'
         : 'Ready to start backend and frontend services.';
       if (loginStatus) loginStatus.textContent = 'Step 8 is locked until the servers are launched.';
       return;

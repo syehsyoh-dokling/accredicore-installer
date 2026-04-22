@@ -74,6 +74,71 @@ function Write-Utf8NoBom {
   [System.IO.File]::WriteAllText($Path, $Content, $utf8NoBom)
 }
 
+function Find-DockerDesktopExecutable {
+  $candidates = @(
+    "$env:ProgramFiles\Docker\Docker\Docker Desktop.exe",
+    "${env:ProgramFiles(x86)}\Docker\Docker\Docker Desktop.exe",
+    "$env:LOCALAPPDATA\Docker\Docker Desktop.exe"
+  )
+
+  foreach ($candidate in $candidates) {
+    if ($candidate -and (Test-Path -LiteralPath $candidate)) {
+      return $candidate
+    }
+  }
+
+  return $null
+}
+
+function Test-DockerEngineReady {
+  $script:LastDockerInfo = & docker info 2>&1
+  return ($LASTEXITCODE -eq 0)
+}
+
+function Start-DockerDesktopAndWait {
+  param(
+    [int]$TimeoutSeconds = 120
+  )
+
+  if (Test-DockerEngineReady) {
+    return $true
+  }
+
+  $dockerDesktop = Find-DockerDesktopExecutable
+  if (-not $dockerDesktop) {
+    Write-Host "ERROR: Docker Desktop application was not found."
+    Write-Host "Instruction:"
+    Write-Host "1. Install Docker Desktop from https://www.docker.com/products/docker-desktop/"
+    Write-Host "2. Open Docker Desktop and finish login/register if requested."
+    Write-Host "3. Return to this installer and run Step 7 again."
+    return $false
+  }
+
+  Write-Host "- Docker engine is not ready. Opening Docker Desktop automatically..."
+  Start-Process -FilePath $dockerDesktop | Out-Null
+  Write-Host "- Waiting for Docker Desktop engine to become ready. If Docker asks for login/register, complete it in the Docker window."
+
+  $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+  do {
+    Start-Sleep -Seconds 5
+    if (Test-DockerEngineReady) {
+      Write-Host "- Docker Desktop engine is ready."
+      return $true
+    }
+    Write-Host "- Still waiting for Docker Desktop..."
+  } while ((Get-Date) -lt $deadline)
+
+  Write-Host "ERROR: Docker Desktop was opened, but the Docker engine is still not ready."
+  Write-Host "Instruction:"
+  Write-Host "1. Check the Docker Desktop window."
+  Write-Host "2. If Docker asks you to sign in, register, accept terms, or start the engine, complete that step."
+  Write-Host "3. Wait until Docker Desktop status shows it is running."
+  Write-Host "4. Return to this installer and click Step 7 again."
+  Write-Host ""
+  Write-Host ($script:LastDockerInfo | Out-String)
+  return $false
+}
+
 $appSource = Join-Path $ProjectRoot "app-source"
 $localApi = Join-Path $ProjectRoot "local-api"
 $setupScript = Join-Path $ProjectRoot "scripts\setup\setup-env-win.ps1"
@@ -121,15 +186,7 @@ Write-Host ""
 
 Write-Host "- Starting local Supabase stack. Docker Desktop must be running."
 Write-Host "- Checking Docker Desktop engine..."
-$dockerInfo = & docker info 2>&1
-if ($LASTEXITCODE -ne 0) {
-  Write-Host "ERROR: Docker Desktop is installed but the Docker engine is not running or is not reachable."
-  Write-Host "Instruction:"
-  Write-Host "1. Open Docker Desktop."
-  Write-Host "2. Wait until Docker Desktop status shows it is running."
-  Write-Host "3. Return to this installer and run Step 7 again."
-  Write-Host ""
-  Write-Host ($dockerInfo | Out-String)
+if (-not (Start-DockerDesktopAndWait -TimeoutSeconds 120)) {
   exit 1
 }
 
